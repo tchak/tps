@@ -35,6 +35,10 @@ class Procedure < ApplicationRecord
   has_one_attached :notice
   has_one_attached :deliberation
 
+  has_one_attached :csv_export_file
+  has_one_attached :xlsx_export_file
+  has_one_attached :ods_export_file
+
   accepts_nested_attributes_for :types_de_champ, reject_if: proc { |attributes| attributes['libelle'].blank? }, allow_destroy: true
   accepts_nested_attributes_for :types_de_champ_private, reject_if: proc { |attributes| attributes['libelle'].blank? }, allow_destroy: true
 
@@ -128,11 +132,73 @@ class Procedure < ApplicationRecord
     end
   end
 
+  def csv_export_stale?
+    !csv_export_file.attached? || csv_export_file.created_at < 3.hour.ago
+  end
+
+  def xlsx_export_stale?
+    !xlsx_export_file.attached? || xlsx_export_file.created_at < 3.hour.ago
+  end
+
+  def ods_export_stale?
+    !ods_export_file.attached? || ods_export_file.created_at < 3.hour.ago
+  end
+
+  def prepare_export_download_later(format)
+    case format.to_sym
+    when :csv
+      if csv_export_stale? && !csv_export_queued?
+        ProcedureExportJob.perform_later(self, :csv)
+        update(csv_export_queued: true)
+      end
+    when :xlsx
+      if xlsx_export_stale? && !xlsx_export_queued?
+        ProcedureExportJob.perform_later(self, :xlsx)
+        update(xlsx_export_queued: true)
+      end
+    when :ods
+      if ods_export_stale? && !ods_export_queued?
+        ProcedureExportJob.perform_later(self, :ods)
+        update(ods_export_queued: true)
+      end
+    end
+  end
+
+  def prepare_export_download(format)
+    service = ProcedureExportV2Service.new(self)
+    filename = export_filename(format)
+
+    case format.to_sym
+    when :csv
+      csv_export_file.attach(
+        io: StringIO.new(service.to_csv),
+        filename: filename,
+        content_type: 'text/csv'
+      )
+      update(csv_export_queued: false)
+    when :xlsx
+      xlsx_export_file.attach(
+        io: StringIO.new(service.to_xlsx),
+        filename: filename,
+        content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      )
+      update(xlsx_export_queued: false)
+    when :ods
+      ods_export_file.attach(
+        io: StringIO.new(service.to_ods),
+        filename: filename,
+        content_type: 'application/vnd.oasis.opendocument.spreadsheet'
+      )
+      update(ods_export_queued: false)
+    end
+  end
+
   def reset!
     if locked?
       raise "Can not reset a locked procedure."
     else
       groupe_instructeurs.each { |gi| gi.dossiers.destroy_all }
+      purge_export_files
     end
   end
 
@@ -172,6 +238,12 @@ class Procedure < ApplicationRecord
     procedure = other_procedure_with_path(path)
 
     procedure.blank? || administrateur.owns?(procedure)
+  end
+
+  def purge_export_files
+    xlsx_export_file.purge_later
+    ods_export_file.purge_later
+    csv_export_file.purge_later
   end
 
   def locked?
@@ -513,12 +585,14 @@ class Procedure < ApplicationRecord
 
   def after_archive
     update!(archived_at: Time.zone.now)
+    purge_export_files
   end
 
   def after_hide
     now = Time.zone.now
     update!(hidden_at: now)
     dossiers.update_all(hidden_at: now)
+    purge_export_files
   end
 
   def after_draft

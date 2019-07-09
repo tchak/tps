@@ -184,6 +184,11 @@ module Instructeurs
       redirect_back(fallback_location: instructeur_procedure_url(procedure))
     end
 
+    def prepare_download_dossiers
+      procedure.prepare_export_download_later(params[:export_format])
+      @procedure = procedure
+    end
+
     def download_dossiers
       options = params.permit(:version, :limit, :since, tables: [])
 
