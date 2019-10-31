@@ -36,7 +36,6 @@ FactoryBot.define do
     trait :for_individual do
       after(:build) do |dossier, _evaluator|
         dossier.individual = create(:individual)
-        dossier.save
       end
     end
 
@@ -97,54 +96,49 @@ FactoryBot.define do
     end
 
     trait :en_construction do
-      after(:create) do |dossier, _evaluator|
+      after(:build) do |dossier, _evaluator|
         dossier.state = Dossier.states.fetch(:en_construction)
-        dossier.en_construction_at ||= dossier.created_at + 1.minute
-        dossier.save!
+        dossier.en_construction_at ||= (dossier.created_at || Time.zone.now) + 1.minute
       end
     end
 
     trait :en_instruction do
-      after(:create) do |dossier, _evaluator|
+      after(:build) do |dossier, _evaluator|
         dossier.state = Dossier.states.fetch(:en_instruction)
-        dossier.en_construction_at ||= dossier.created_at + 1.minute
+        dossier.en_construction_at ||= (dossier.created_at || Time.zone.now) + 1.minute
         dossier.en_instruction_at ||= dossier.en_construction_at + 1.minute
-        dossier.save!
       end
     end
 
     trait :accepte do
-      after(:create) do |dossier, _evaluator|
+      after(:build) do |dossier, _evaluator|
         dossier.state = Dossier.states.fetch(:accepte)
-        dossier.en_construction_at ||= dossier.created_at + 1.minute
+        dossier.en_construction_at ||= (dossier.created_at || Time.zone.now) + 1.minute
         dossier.en_instruction_at ||= dossier.en_construction_at + 1.minute
         dossier.processed_at ||= dossier.en_instruction_at + 1.minute
-        dossier.save!
       end
     end
 
     trait :refuse do
-      after(:create) do |dossier, _evaluator|
+      after(:build) do |dossier, _evaluator|
         dossier.state = Dossier.states.fetch(:refuse)
-        dossier.en_construction_at ||= dossier.created_at + 1.minute
+        dossier.en_construction_at ||= (dossier.created_at || Time.zone.now) + 1.minute
         dossier.en_instruction_at ||= dossier.en_construction_at + 1.minute
         dossier.processed_at ||= dossier.en_instruction_at + 1.minute
-        dossier.save!
       end
     end
 
     trait :sans_suite do
-      after(:create) do |dossier, _evaluator|
+      after(:build) do |dossier, _evaluator|
         dossier.state = Dossier.states.fetch(:sans_suite)
-        dossier.en_construction_at ||= dossier.created_at + 1.minute
+        dossier.en_construction_at ||= (dossier.created_at || Time.zone.now) + 1.minute
         dossier.en_instruction_at ||= dossier.en_construction_at + 1.minute
         dossier.processed_at ||= dossier.en_instruction_at + 1.minute
-        dossier.save!
       end
     end
 
     trait :with_motivation do
-      after(:create) do |dossier, _evaluator|
+      after(:build) do |dossier, _evaluator|
         dossier.motivation = case dossier.state
         when Dossier.states.fetch(:refuse)
           'L’entreprise concernée n’est pas agréée.'
