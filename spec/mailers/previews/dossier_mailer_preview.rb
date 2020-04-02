@@ -28,6 +28,14 @@ class DossierMailerPreview < ActionMailer::Preview
     DossierMailer.notify_near_deletion_to_administration([dossier_en_construction, dossier_en_construction], administration_email)
   end
 
+  def notify_en_instruction_near_deletion_to_user
+    DossierMailer.notify_near_deletion_to_user([dossier_en_instruction], usager_email)
+  end
+
+  def notify_en_instruction_near_deletion_to_administration
+    DossierMailer.notify_near_deletion_to_administration([dossier_en_instruction, dossier_en_instruction], administration_email)
+  end
+
   def notify_termine_near_deletion_to_user
     DossierMailer.notify_near_deletion_to_user([dossier_accepte], usager_email)
   end
@@ -89,6 +97,10 @@ class DossierMailerPreview < ActionMailer::Preview
 
   def dossier_en_construction
     Dossier.new(id: 47882, state: :en_construction, procedure: procedure, user: User.new(email: "usager@example.com"))
+  end
+
+  def dossier_en_instruction
+    Dossier.new(id: 47882, state: :en_instruction, procedure: procedure, user: User.new(email: "usager@example.com"))
   end
 
   def dossier_accepte
