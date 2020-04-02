@@ -9,6 +9,11 @@ class ExpiredDossiersDeletionService
     delete_expired_en_construction_and_notify
   end
 
+  def self.process_expired_dossiers_en_instruction
+    send_en_instruction_expiration_notices
+    delete_expired_en_instruction_and_notify
+  end
+
   def self.process_expired_dossiers_termine
     send_termine_expiration_notices
     delete_expired_termine_and_notify
@@ -44,6 +49,16 @@ class ExpiredDossiersDeletionService
     )
   end
 
+  def self.send_en_instruction_expiration_notices
+    dossiers_close_to_expiration = Dossier
+      .en_instruction_close_to_expiration
+      .without_en_instruction_expiration_notice_sent
+
+    send_expiration_notices(dossiers_close_to_expiration)
+
+    dossiers_close_to_expiration.update_all(en_instruction_close_to_expiration_notice_sent_at: Time.zone.now)
+  end
+
   def self.send_termine_expiration_notices
     send_expiration_notices(
       Dossier.termine_close_to_expiration.without_termine_expiration_notice_sent,
@@ -74,6 +89,13 @@ class ExpiredDossiersDeletionService
 
   def self.delete_expired_en_construction_and_notify
     delete_expired_and_notify(Dossier.en_construction_expired)
+  end
+
+  def self.delete_expired_en_instruction_and_notify
+    dossiers_to_remove = Dossier.en_instruction_expired
+    dossiers_to_remove.each(&:classer_sans_suite_automatiquement!)
+
+    delete_expired_and_notify(dossiers_to_remove)
   end
 
   def self.delete_expired_termine_and_notify
