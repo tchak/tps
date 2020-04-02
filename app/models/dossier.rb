@@ -212,6 +212,10 @@ class Dossier < ApplicationRecord
     state_en_construction
       .where("en_construction_close_to_expiration_notice_sent_at + INTERVAL :expires_in < :now", { now: Time.zone.now, expires_in: INTERVAL_EXPIRATION })
   end
+  scope :en_instruction_expired, -> do
+    state_en_instruction
+      .where("en_instruction_close_to_expiration_notice_sent_at + INTERVAL :expires_in < :now", { now: Time.zone.now, expires_in: INTERVAL_EXPIRATION })
+  end
   scope :termine_expired, -> do
     state_termine
       .where("termine_close_to_expiration_notice_sent_at + INTERVAL :expires_in < :now", { now: Time.zone.now, expires_in: INTERVAL_EXPIRATION })
@@ -219,6 +223,7 @@ class Dossier < ApplicationRecord
 
   scope :without_brouillon_expiration_notice_sent, -> { where(brouillon_close_to_expiration_notice_sent_at: nil) }
   scope :without_en_construction_expiration_notice_sent, -> { where(en_construction_close_to_expiration_notice_sent_at: nil) }
+  scope :without_en_instruction_expiration_notice_sent, -> { where(en_instruction_close_to_expiration_notice_sent_at: nil) }
   scope :without_termine_expiration_notice_sent, -> { where(termine_close_to_expiration_notice_sent_at: nil) }
 
   scope :discarded_brouillon_expired, -> do
