@@ -565,7 +565,7 @@ describe Dossier do
 
         before do
           (dossier.champs + dossier.champs_private)
-            .filter { |c| c.libelle.match?(/^specified/) }
+            .filter { |c| c.libelle.start_with?('specified') }
             .each { |c| c.update_attribute(:value, "specified") }
         end
 
