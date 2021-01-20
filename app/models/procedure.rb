@@ -696,6 +696,11 @@ class Procedure < ApplicationRecord
     Procedure.connection.select_all(sanitized_query).first || { "a_suivre" => 0, "suivis" => 0, "termines" => 0, "total" => 0, "archived" => 0 }
   end
 
+  def publish_revision!
+    update!(draft_revision: create_new_revision, published_revision: draft_revision)
+    published_revision.update!(published_at: Time.zone.now)
+  end
+
   private
 
   def before_publish
@@ -703,7 +708,12 @@ class Procedure < ApplicationRecord
   end
 
   def after_publish(canonical_procedure = nil)
-    update!(published_at: Time.zone.now, canonical_procedure: canonical_procedure, draft_revision: create_new_revision, published_revision: draft_revision)
+    if depubliee?
+      update!(published_at: Time.zone.now, canonical_procedure: canonical_procedure)
+    else
+      update!(published_at: Time.zone.now, canonical_procedure: canonical_procedure, draft_revision: create_new_revision, published_revision: draft_revision)
+      published_revision.update!(published_at: Time.zone.now)
+    end
   end
 
   def after_close
