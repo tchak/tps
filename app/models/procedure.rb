@@ -91,6 +91,14 @@ class Procedure < ApplicationRecord
     brouillon? ? draft_types_de_champ_private : published_types_de_champ_private
   end
 
+  def types_de_champ_for_tags
+    brouillon? ? draft_types_de_champ : all_types_de_champ.order(:created_at).uniq
+  end
+
+  def types_de_champ_private_for_tags
+    brouillon? ? draft_types_de_champ_private : all_types_de_champ_private.order(:created_at).uniq
+  end
+
   def types_de_champ_for_export
     if brouillon?
       draft_types_de_champ
