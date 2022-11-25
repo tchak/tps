@@ -1006,5 +1006,14 @@ class API::V2::StoredQuery
       }
     }
   }
+
+  mutation dossierCreer($input: DossierCreerInput!) {
+    dossierCreer(input: $input) {
+      dossierUrl
+      errors {
+        message
+      }
+    }
+  }
   GRAPHQL
 end

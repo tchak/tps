@@ -25,5 +25,6 @@ module Types
     field :groupe_instructeur_ajouter_instructeurs, mutation: Mutations::GroupeInstructeurAjouterInstructeurs
     field :groupe_instructeur_supprimer_instructeurs, mutation: Mutations::GroupeInstructeurSupprimerInstructeurs
     field :demarche_cloner, mutation: Mutations::DemarcheCloner
+    field :dossier_creer, mutation: Mutations::DossierCreer
   end
 end
