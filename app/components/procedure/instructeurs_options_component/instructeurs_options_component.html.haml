@@ -99,10 +99,4 @@
       %p
         = t('.anonymisation_callout.content_part_2_html', id: @procedure.id, contact_email: CONTACT_EMAIL)
 
-  .padded-fixed-footer
-    .fixed-footer
-      .fr-container
-        %ul.fr-btns-group.fr-btns-group--inline-md.fr-ml-0
-          %li
-            = link_to admin_procedure_path(id: @procedure), class: 'fr-link fr-icon-arrow-left-line fr-link--icon-left fr-mb-2w fr-mr-2w' do
-              = t('.back_to_management')
+  = render Procedure::FixedFooterComponent.new(procedure: @procedure)

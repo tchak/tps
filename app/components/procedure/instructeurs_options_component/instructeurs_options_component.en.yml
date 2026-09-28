@@ -39,7 +39,6 @@ en:
       hint: you are free to create and configure groups using the "routable" fields of the user form
   cancel: Cancel
   continue: Continue
-  back_to_management: Back to the management screen
   routage_doc:
     title: "Routing Documentation"
     learn_more: "Learn more about"

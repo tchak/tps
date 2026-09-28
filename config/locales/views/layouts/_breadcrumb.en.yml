@@ -12,7 +12,6 @@ en:
       show: Show breadcrumb
       preview: 'Preview the form'
       preview_annotations: 'Preview annotations'
-      continue_annotations: 'Validate annotations'
       since: 'since %{date}'
       closed: 'Closed'
       published: 'Published'
