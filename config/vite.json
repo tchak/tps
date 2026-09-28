@@ -1,6 +1,5 @@
 {
   "all": {
-    "vite_bin_path": "./bin/bun_vite",
     "sourceCodeDir": "app/javascript",
     "watchAdditionalPaths": ["bun.lock"]
   },
