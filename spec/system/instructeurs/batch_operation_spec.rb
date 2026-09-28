@@ -212,11 +212,23 @@ describe 'BatchOperation a dossier:', js: true do
 
       expect(page).to have_content("Le champ « Adresse électronique » doit être rempli")
 
-      fill_in('avis_emails', with: 'mljkzmljz')
+      # a separator commits each typed email as a chip
+      fill_in('avis_emails', with: 'expert@example.com,mljkzmljz,')
+      expect(page).to have_button('Supprimer expert@example.com')
+      expect(page).to have_button('Supprimer mljkzmljz')
+
       click_on "Envoyer la demande d’avis"
       expect(page).to have_content("Le champ « Adresse électronique » est invalide : mljkzmljz")
 
-      fill_in('avis_emails', with: 'test@test.com')
+      # the 422 re-renders the form without the submitted emails: the chips
+      # only survive because the stream morphs the form
+      expect(page).to have_button('Supprimer expert@example.com')
+      expect(page).to have_button('Supprimer mljkzmljz')
+
+      # fix the error without typing the valid email again
+      click_on 'Supprimer mljkzmljz'
+      expect(page).not_to have_button('Supprimer mljkzmljz')
+
       within('form#new_avis') { click_on "Annuler" }
 
       expect(page).not_to have_content("Information : Une action de masse est en cours")
@@ -224,13 +236,14 @@ describe 'BatchOperation a dossier:', js: true do
       click_on "Autres actions multiples"
       click_on "Demander un avis externe"
 
-      fill_in('avis_emails', with: 'test@test.com')
+      expect(page).to have_button('Supprimer expert@example.com')
       click_on "Envoyer la demande d’avis"
       # ensure batched dossier is disabled
       expect(page).to have_selector("##{checkbox_id}[disabled]")
       expect(page).to have_selector("##{checkbox_id2}[disabled]")
       # ensure Batch is created
       expect(BatchOperation.count).to eq(1)
+      expect(BatchOperation.last.emails).to eq(['expert@example.com'])
       # check a11y with disabled checkbox
       expect(page).to be_axe_clean
 
@@ -373,6 +386,18 @@ describe 'BatchOperation a dossier:', js: true do
         find('input[type="file"]', visible: false).attach_file(Rails.root.join('spec/fixtures/files/piece_justificative_0.pdf'))
       end
 
+      # another batch takes the dossier while the message is being written: the
+      # stream re-renders the form, and the typed body and the selected file
+      # must survive it
+      competing_batch = create(:batch_operation, operation: :passer_en_instruction, instructeur:, dossiers: [dossier_1])
+      click_on "Envoyer le message"
+
+      within('#modal-commentaire-batch') do
+        expect(page).to have_content('piece_justificative_0.pdf')
+        expect(page).to have_field('Votre message', with: 'Veuillez trouver ci-joint le document')
+      end
+
+      competing_batch.destroy!
       click_on "Envoyer le message"
 
       expect(page).to have_selector("##{checkbox_id_1}[disabled]")
