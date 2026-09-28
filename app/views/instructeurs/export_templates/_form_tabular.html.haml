@@ -52,8 +52,8 @@
       = render ExportTemplate::ChampsComponent.new("Formulaire usager", export_template, @public_type_de_champs)
       = render ExportTemplate::ChampsComponent.new("Annotations privées", export_template, @private_type_de_champs) if @private_type_de_champs.any?
 
-      .fixed-footer
-        .fr-container
-          %ul.fr-btns-group.fr-btns-group--inline-md
-            %li= link_to "Annuler", [:export_templates, :instructeur, procedure], class: "fr-btn fr-btn--secondary"
-            %li= f.button "Enregistrer", class: "fr-btn", data: export_template.persisted? ? { turbo_confirm: t('.warning') } : {}
+      = render FixedFooterComponent.new do |footer|
+        - footer.with_action do
+          = link_to t('.cancel'), [:export_templates, :instructeur, procedure], class: "fr-btn fr-btn--secondary"
+        - footer.with_action do
+          = f.button t('.submit'), class: "fr-btn", data: export_template.persisted? ? { turbo_confirm: t('.warning') } : {}
