@@ -172,6 +172,10 @@ fr:
           clone: Cloner la démarche
           cancel: Annuler
           disable_with: Clonage en cours
+      new:
+        submit: Créer la démarche
+        cancel: Annuler
+        cancel_confirm: Êtes-vous sûr de vouloir annuler la création de cette démarche ?
       champs:
         callout_personne_physique_html: 'Les informations suivantes concernant le demandeur sont déjà renseignées dans la première étape <i>Identité</i> du formulaire :'
         callout_personne_physique_gender_html: <li><b>Civilité</b> (Madame / Monsieur)</li>
