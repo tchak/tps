@@ -506,6 +506,10 @@ describe 'Referentiel API:' do
           # check UI shows prefilled badges
           expect(page).to have_content("Donnée remplie automatiquement.", count: 2)
 
+          # the polling stream re-renders the address fieldset: the combobox
+          # must pick the resolved address up from its new props
+          expect(page).to have_field(address_champ.focusable_input_id, with: "20 Avenue de Ségur 75007 Paris")
+
           # check we can create a dossier
           click_on("Déposer le dossier")
           wait_until { procedure.dossiers.en_construction.count == 1 }
