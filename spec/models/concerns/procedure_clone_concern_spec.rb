@@ -123,9 +123,7 @@ describe ProcedureCloneConcern, type: :model do
       expect(subject.duree_conservation_dossiers_dans_ds).to eq(Expired::DEFAULT_DOSSIER_RENTENTION_IN_MONTH)
     end
 
-    context 'when the draft has its type de champ tree stored' do
-      before { procedure.draft_revision.store_type_de_champ_tree }
-
+    context 'type de champ tree' do
       it 'stores the tree of the copies, not the one of the draft' do
         source_tree = procedure.draft_revision.type_de_champ_tree
         tree = subject.draft_revision.reload.read_attribute(:type_de_champ_tree)

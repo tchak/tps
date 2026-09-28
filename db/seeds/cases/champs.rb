@@ -90,6 +90,9 @@ ActiveRecord::Base.transaction do
     revision.revision_type_de_champs.create!(type_de_champ: TypeDeChamp.create!(procedure_id: procedure.id, **params), parent: repetition_coordinate, position:)
   end
 
+  # the coordinates were laid by hand: the revision stores its tree, as an edit would
+  revision.store_type_de_champ_tree
+
   procedures.label tous_champs: procedure
 
   dossier = dossiers.create(

@@ -17,9 +17,11 @@ describe ProcedureRevision do
       def stored_tree = ProcedureRevision.find(draft.id).read_attribute(:type_de_champ_tree)
       def stored_libelles(nodes = stored_tree.public_children) = nodes.map { [TypeDeChamp.find(it.type_de_champ_id).libelle, *stored_libelles(it.children).presence] }
 
-      it 'is built from the coordinates until an edit' do
-        expect(stored_tree).to be_nil
-        expect(draft.type_de_champ_tree.public_children.map(&:stable_id)).to eq(draft.public_revision_type_de_champs.map(&:stable_id))
+      it 'is empty at creation, and stored from the coordinates the factory lays' do
+        created = procedure.revisions.create!
+
+        expect(ProcedureRevision.find(created.id).read_attribute(:type_de_champ_tree)).to eq(TypeDeChampTree.new)
+        expect(stored_tree).to eq(TypeDeChampTree.from_coordinates(draft.revision_type_de_champs))
       end
 
       it 'is edited on a saved revision only, as the lock reloads it' do
@@ -94,10 +96,9 @@ describe ProcedureRevision do
         expect(revision.type_de_champ_tree).to eq(TypeDeChampTree.from_coordinates(revision.revision_type_de_champs))
       end
 
-      it 'is built from the coordinates until backfilled' do
-        revision.update_columns(type_de_champ_tree: nil)
-
-        expect(revision.reload.type_de_champ_tree.public_children.map(&:stable_id)).to eq(revision.public_root_type_de_champs.map(&:stable_id))
+      it 'is never null' do
+        expect { revision.update_columns(type_de_champ_tree: nil) }
+          .to raise_error(ActiveRecord::StatementInvalid, /procedure_revisions_type_de_champ_tree_null/)
       end
     end
   end

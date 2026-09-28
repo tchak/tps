@@ -69,6 +69,10 @@ FactoryBot.define do
     end
 
     after(:create) do |procedure, evaluator|
+      # the coordinates were laid by hand: the revisions store their tree, as an edit would
+      procedure.draft_revision.store_type_de_champ_tree
+      procedure.published_revision&.store_type_de_champ_tree
+
       procedure.claim_path!(evaluator.administrateur, evaluator.path)
       evaluator.instructeurs.each { |i| i.assign_to_procedure(procedure) }
 
