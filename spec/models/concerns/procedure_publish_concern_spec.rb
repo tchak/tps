@@ -181,6 +181,48 @@ describe ProcedurePublishConcern do
       expect(procedure.published_revision).to have_received(:lock!).with(ProcedureRevision::TYPE_DE_CHAMP_TREE_LOCK)
     end
 
+    it 'purges the types de champ no revision lays out any more, and only those' do
+      removed = procedure.draft_revision.add_type_de_champ(type_champ: :text, libelle: 'removed before publication')
+      procedure.draft_revision.remove_type_de_champ(removed.stable_id)
+      expect { removed.reload }.not_to raise_error
+
+      subject
+
+      expect { removed.reload }.to raise_error(ActiveRecord::RecordNotFound)
+
+      # the version a past revision lays out stays
+      published = procedure.published_revision.public_root_type_de_champs.first
+      edited = procedure.draft_revision.find_and_ensure_exclusive_use(published.stable_id)
+      expect(edited.id).not_to eq(published.id)
+
+      procedure.publish_revision!(administrateur)
+
+      expect { published.reload }.not_to raise_error
+      expect(procedure.published_revision.public_root_type_de_champs.map(&:id)).to eq([edited.id])
+    end
+
+    context 'when a repetition was turned into another type' do
+      let(:procedure) { create(:procedure, :published, administrateurs: [administrateur], public_type_de_champs: [{ type: :repetition, children: [{ type: :text }] }]) }
+      let(:draft) { procedure.draft_revision }
+      let(:repetition) { draft.public_root_type_de_champs.find(&:repetition?) }
+      let!(:child) { draft.children_of(repetition).first }
+
+      before do
+        text = draft.find_and_ensure_exclusive_use(repetition.stable_id).becomes_type('text')
+        draft.update_type_de_champ(text, type_champ: 'text')
+        expect(draft.revision_type_de_champs.reject(&:root?)).to be_present
+      end
+
+      it 'removes the children coordinates the tree leaves out, cloned into the next draft otherwise' do
+        subject
+
+        expect(procedure.published_revision.revision_type_de_champs.reject(&:root?)).to be_empty
+        expect(procedure.draft_revision.revision_type_de_champs.reject(&:root?)).to be_empty
+        # laid out by the first published revision
+        expect { child.reload }.not_to raise_error
+      end
+    end
+
     context 'when the procedure has dossiers' do
       let(:dossier_draft) { create(:dossier, :brouillon, procedure: procedure) }
       let(:dossier_submitted) { create(:dossier, :en_construction, procedure: procedure) }
@@ -264,14 +306,17 @@ describe ProcedurePublishConcern do
         expect(draft_revision.read_attribute(:type_de_champ_tree)).to eq(TypeDeChampTree.from_coordinates(draft_revision.revision_type_de_champs))
       end
 
-      it "should erase orphan tdc" do
+      it "purges the types de champ of the draft, the ones removed from it since the publication included" do
         published_tdc = procedure.published_revision.type_de_champs.first
         draft_tdc = procedure.draft_revision.add_type_de_champ(tdc_attributes)
+        removed_tdc = procedure.draft_revision.add_type_de_champ(type_champ: :text, libelle: 'removed')
+        procedure.draft_revision.remove_type_de_champ(removed_tdc.stable_id)
 
         procedure.reset_draft_revision!
 
         expect { published_tdc.reload }.not_to raise_error
         expect { draft_tdc.reload }.to raise_error(ActiveRecord::RecordNotFound)
+        expect { removed_tdc.reload }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
   end

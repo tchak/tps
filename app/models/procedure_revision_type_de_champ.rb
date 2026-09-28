@@ -35,10 +35,6 @@ class ProcedureRevisionTypeDeChamp < ApplicationRecord
     parent_id.present?
   end
 
-  def orphan?
-    child? && !parent_type_de_champ.repetition?
-  end
-
   def first?
     position == 0
   end
