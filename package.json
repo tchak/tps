@@ -35,7 +35,6 @@
     "@tiptap/pm": "^2.27.3",
     "@tiptap/suggestion": "^2.27.3",
     "@tmcw/togeojson": "^6.0.1",
-    "@vitest/browser": "^4.1.8",
     "@vitest/browser-playwright": "^4.1.8",
     "chartkick": "^5.0.1",
     "coldwired": "^0.18.4",
