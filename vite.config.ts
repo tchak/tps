@@ -28,7 +28,7 @@ export default defineConfig({
       presets: [reactCompilerPreset(), linguiTransformerBabelPreset()]
     }),
     fullReload(
-      ['config/routes.rb', 'app/views/**/*', 'app/components/**/*.haml'],
+      ['config/routes.rb', 'app/views/**/*', 'app/components/**/*.{haml,erb}'],
       { delay: 200 }
     ),
     optimizeLocales.vite({ locales: ['en-US', 'fr-FR'] }),
