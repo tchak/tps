@@ -4,18 +4,10 @@
   - if procedure_id.present?
     = hidden_field_tag :procedure_id, procedure_id
 
-  .fixed-footer
-    .fr-container
-      %ul.fr-btns-group.fr-btns-group--inline-md
-        %li
-          = f.submit "Enregistrer", class: "fr-btn"
-        %li
-          = link_to "Annuler", instructeur_groupe_path(@groupe_instructeur, procedure_id: procedure_id), class: "fr-btn fr-btn--secondary"
-
-        - if ["edit", "update"].include?(params[:action])
-          %li
-            = render NestedForms::OwnedButtonComponent.new(formaction: instructeur_groupe_contact_information_path(procedure_id: @procedure.id, groupe_id: @groupe_instructeur.id), http_method: :delete, opt: { class: 'fr-btn fr-btn--secondary', data: { turbo_confirm: "Confirmez vous la suppression de ces informations de contact ?" } }) do
-              Supprimer
+  = render "shared/groupe_instructeurs/contact_information_footer",
+    f:,
+    cancel_path: instructeur_groupe_path(@groupe_instructeur, procedure_id: procedure_id),
+    delete_path: (instructeur_groupe_contact_information_path(procedure_id: @procedure.id, groupe_id: @groupe_instructeur.id) if ["edit", "update"].include?(params[:action]))
 
 - if ["edit", "update"].include?(params[:action])
   = render NestedForms::FormOwnerComponent.new

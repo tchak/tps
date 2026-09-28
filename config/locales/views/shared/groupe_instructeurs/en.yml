@@ -1,0 +1,9 @@
+---
+en:
+  shared:
+    groupe_instructeurs:
+      contact_information_footer:
+        cancel: Cancel
+        submit: Save
+        delete: Delete
+        delete_confirm: Do you confirm the deletion of this contact information?
