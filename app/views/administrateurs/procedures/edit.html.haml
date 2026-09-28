@@ -18,4 +18,4 @@
 
         = render partial: 'administrateurs/procedures/informations', locals: { f: f }
 
-  = render Procedure::FixedFooterComponent.new(procedure: @procedure, form: f, extra_class_names: 'fr-col-offset-md-2 fr-col-md-8')
+  = render Procedure::FixedFooterComponent.new(procedure: @procedure, form: f, narrow: true)

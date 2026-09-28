@@ -1,4 +1,6 @@
+---
 fr:
   back: Revenir à l’écran de gestion
   submit: Enregistrer
   cancel: Annuler et revenir à l’écran de gestion
+  cancel_confirm: Si vous avez fait des modifications elles ne seront pas sauvegardées.
