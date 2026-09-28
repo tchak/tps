@@ -22,6 +22,19 @@ describe 'As an administrateur i can edit a mail template with the tiptap editor
 
     within('#mail-body-preview') { expect(page).to have_css('iframe') }
 
+    within('#email_template_tiptap_body_editor') do
+      paragraphs_count = all('p').count
+      find('.ProseMirror').send_keys(:enter)
+      expect(page).to have_css('p', count: paragraphs_count + 1)
+    end
+
+    body_editor = find('#email_template_tiptap_body_editor .ProseMirror')
+    tags_count = body_editor.all('.fr-tag').count
+    body_editor.send_keys('@')
+    expect(page).to have_css('.fr-menu button[data-tag-index="0"]')
+    body_editor.send_keys(:enter)
+    expect(body_editor).to have_css('.fr-tag', count: tags_count + 1)
+
     body_group = find('.fr-input-group', text: 'Corps de l’email')
     within(body_group) do
       find('button[data-tag-id="dossier_number"]').click
