@@ -231,7 +231,16 @@ end
 # read timeout to fire. Replaying is safe: an object deleted by the first attempt is
 # counted under "Number Not Found" on the next, not under "Errors".
 #
+# Past ~10 s, Swift sends the 200 and keeps the connection alive with whitespace until
+# its JSON report is ready. A stream cut in between reaches us as a 200 whose body is
+# only whitespace, so Excon has nothing to replay and the decode fails: we replay the
+# request ourselves.
+#
+#   200 OK  "  \r\n\r\n{\"Number Deleted\": 1000, ...}"   complete
+#   200 OK  "   "                                         cut -> Fog::JSON::DecodeError
+#
 # https://github.com/fog/fog-openstack/blob/v1.1.5/lib/fog/openstack/storage/requests/delete_multiple_objects.rb
+# https://github.com/openstack/swift/blob/master/swift/common/middleware/bulk.py (handle_delete_iter)
 require 'fog/openstack'
 
 module OpenStackBulkDeletePatch
@@ -244,16 +253,25 @@ module OpenStackBulkDeletePatch
       URI::DEFAULT_PARSER.escape(object_name)
     end.join("\n")
 
-    response = request({
-      expects: 200,
-      method: 'DELETE',
-      headers: options.merge('Content-Type' => 'text/plain', 'Accept' => 'application/json'),
-      body:,
-      query: { 'bulk-delete' => true },
-      idempotent: true,
-      retry_interval: RETRY_INTERVAL,
-    }, false)
-    response.body = Fog::JSON.decode(response.body)
+    attempts = 0
+    begin
+      attempts += 1
+      response = request({
+        expects: 200,
+        method: 'DELETE',
+        headers: options.merge('Content-Type' => 'text/plain', 'Accept' => 'application/json'),
+        body:,
+        query: { 'bulk-delete' => true },
+        idempotent: true,
+        retry_interval: RETRY_INTERVAL,
+      }, false)
+      response.body = Fog::JSON.decode(response.body)
+    rescue Fog::JSON::DecodeError
+      raise if attempts >= Excon.defaults[:retry_limit]
+
+      sleep RETRY_INTERVAL
+      retry
+    end
     response
   end
 end
