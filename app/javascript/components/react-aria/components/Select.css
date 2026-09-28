@@ -5,7 +5,11 @@
   color: var(--text-color);
   position: relative;
 
-  .react-aria-SelectValue {
+  .fr-select {
+    --hover-tint: var(--background-contrast-grey);
+  }
+
+  .fr-select .react-aria-SelectValue {
     display: block;
     flex: 1;
     text-align: start;
@@ -34,7 +38,6 @@
   }
 
   .select-empty-hint {
-    white-space: normal;
     font-style: italic;
   }
 }

@@ -1,4 +1,5 @@
 import './process-env-shim';
+import '@gouvfr/dsfr/dist/core/core.min.css';
 import '@gouvfr/dsfr/dist/component/select/select.min.css';
 import { vi, suite, test, expect, beforeEach, afterEach } from 'vitest';
 import { userEvent, page } from '@vitest/browser/context';
@@ -108,6 +109,79 @@ suite('MultipleSelect with sections', () => {
     await expect
       .element(page.getByText(/choix sélectionné/))
       .not.toBeInTheDocument();
+  });
+});
+
+suite('MultipleSelect labelled by a Rails label', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    container.innerHTML = '<label id="champ-label">Menu</label>';
+    document.body.appendChild(container);
+    const mount = document.createElement('div');
+    container.appendChild(mount);
+    root = createRoot(mount);
+    root.render(
+      <MultipleSelect
+        name="champs[]"
+        items={[
+          { label: 'Entrée', value: 'entree' },
+          { label: 'Plat', value: 'plat' }
+        ]}
+        value={['entree', 'plat']}
+        labelId="champ-label"
+        aria-describedby="champ-hint"
+      />
+    );
+  });
+
+  afterEach(() => {
+    root.unmount();
+    container.remove();
+  });
+
+  test('describes the trigger with the selected count, keeping its description', async () => {
+    const button = page.getByRole('button', { name: /Menu/ });
+    await expect.element(button).toBeInTheDocument();
+
+    const describedby = button.element().getAttribute('aria-describedby');
+    const ids = describedby?.split(' ') ?? [];
+    expect(ids).toContain('champ-hint');
+    const count = ids
+      .map((id) => document.getElementById(id))
+      .find((el) => el?.textContent == '2 choix sélectionnés');
+    expect(count).toBeDefined();
+  });
+
+  test('lets the focus ring of the trigger show', async () => {
+    const button = page.getByRole('button', { name: /Menu/ });
+    await expect.element(button).toBeInTheDocument();
+
+    let el = button.element().parentElement;
+    while (el && el != container) {
+      expect(getComputedStyle(el).overflow).toBe('visible');
+      el = el.parentElement;
+    }
+  });
+
+  test('keeps the trigger background on hover, like a DSFR select', async () => {
+    const button = page.getByRole('button', { name: /Menu/ });
+    await expect.element(button).toBeInTheDocument();
+    const idle = getComputedStyle(button.element()).backgroundColor;
+
+    await userEvent.hover(button);
+
+    expect(getComputedStyle(button.element()).backgroundColor).toBe(idle);
+  });
+
+  test('labels the search field with the champ label', async () => {
+    await userEvent.click(page.getByRole('button', { name: /Menu/ }));
+
+    await expect
+      .element(page.getByRole('searchbox'))
+      .toHaveAccessibleName('Menu');
   });
 });
 
