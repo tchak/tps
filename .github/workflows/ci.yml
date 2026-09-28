@@ -14,6 +14,10 @@ concurrency:
 
 env:
   DISABLE_SPRING: '1'
+  # Assets are precompiled up front (ci-setup-assets). With autoBuild left on,
+  # vite_ruby would re-read the manifest and re-hash app/javascript on every
+  # asset lookup, for a build it never triggers.
+  VITE_RUBY_AUTO_BUILD: 'false'
 
 jobs:
   # Only the unit test jobs run on GitHub-hosted runners: the free plan caps

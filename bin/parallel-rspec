@@ -25,12 +25,17 @@ fi
 
 # Build assets once up front; otherwise every process would race to autobuild.
 # assets:precompile covers both pipelines: vite_ruby enhances it with
-# vite:build_all, and config.assets.compile is false in test so the Sprockets
-# bundle must be precompiled too — otherwise system specs run against a stale
-# application.css. Same step as .github/actions/ci-setup-assets in CI.
-# Both halves skip on a content digest, so an unchanged tree costs ~2.5s —
-# about 1s more than the vite build alone that this replaces.
+# vite:build_all, and the Sprockets half warms the cache in tmp/cache/assets
+# that the processes then compile application.css from (outside CI, test
+# resolves Sprockets assets from the environment, not from the precompiled
+# manifest — see config/environments/test.rb). Same step as
+# .github/actions/ci-setup-assets in CI. Both halves skip on a content
+# digest, so an unchanged tree costs a few seconds.
 bin/rails assets:precompile
+
+# The bundle is built: with autoBuild left on, every asset lookup in every
+# process would re-read the manifest and re-hash app/javascript for nothing.
+export VITE_RUBY_AUTO_BUILD=false
 
 # Processes are balanced with the runtimes recorded in
 # tmp/parallel_runtime_rspec.log by previous runs (parallel_tests' default
