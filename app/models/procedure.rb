@@ -16,6 +16,7 @@ class Procedure < ApplicationRecord
   include RoutingRuleStatusesConcern
   include ProcedureDossierVidePdfConcern
   include ProcedureEmailTemplatesConcern
+  include ProcedureArchiveWeightConcern
 
   include Discard::Model
   self.discard_column = :hidden_at
@@ -23,8 +24,6 @@ class Procedure < ApplicationRecord
   default_scope -> { kept }
 
   OLD_MAX_DUREE_CONSERVATION = 36
-
-  MIN_WEIGHT = 350000
 
   DOSSIERS_COUNT_EXPIRING = 12.hours
 
@@ -650,20 +649,6 @@ class Procedure < ApplicationRecord
       dossiers.hidden_by_procedure_removed.find_each do |dossier|
         dossier.restore(author)
       end
-    end
-  end
-
-  def average_dossier_weight
-    if dossiers.termine.any?
-      dossiers_sample = dossiers.termine.limit(100)
-      total_size = ChampData
-        .includes(piece_justificative_file_attachments: :blob)
-        .where(type: Champs::PieceJustificativeChamp.to_s, dossier: dossiers_sample)
-        .sum('active_storage_blobs.byte_size')
-
-      MIN_WEIGHT + total_size / dossiers_sample.length
-    else
-      nil
     end
   end
 

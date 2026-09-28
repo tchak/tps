@@ -1263,21 +1263,6 @@ describe Procedure do
     end
   end
 
-  describe '#average_dossier_weight' do
-    let(:procedure) { create(:procedure, :published, public_type_de_champs: [{ type: :piece_justificative }]) }
-
-    before do
-      [4, 5, 6].each do |byte_size|
-        dossier = create(:dossier, :accepte, :with_populated_champs, procedure:)
-        dossier.champs.flat_map(&:piece_justificative_file_attachments).each { it.blob.update!(byte_size:) }
-      end
-    end
-
-    it 'estimates average dossier weight' do
-      expect(procedure.reload.average_dossier_weight).to eq(5 + Procedure::MIN_WEIGHT)
-    end
-  end
-
   describe 'lien_dpo' do
     let(:procedure) { procedures.brouillon }
 
