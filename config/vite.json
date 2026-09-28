@@ -2,7 +2,7 @@
   "all": {
     "vite_bin_path": "./bin/bun_vite",
     "sourceCodeDir": "app/javascript",
-    "watchAdditionalPaths": []
+    "watchAdditionalPaths": ["bun.lock"]
   },
   "development": {
     "autoBuild": true,
