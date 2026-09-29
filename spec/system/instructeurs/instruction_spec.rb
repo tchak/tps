@@ -8,7 +8,7 @@ describe 'Instructing a dossier:', js: true do
   let(:password) { SECURE_PASSWORD }
   let!(:instructeur) { create(:instructeur, password: password) }
 
-  let!(:procedure) { create(:procedure, :published, instructeurs: [instructeur], private_type_de_champs: [{ type: 'checkbox', libelle: 'Yes/No', stable_id: 99 }, { libelle: 'Nom', condition: ds_eq(champ_value(99), constant(true)) }]) }
+  let!(:procedure) { create(:procedure, :published, instructeurs: [instructeur], private_type_de_champs: [{ type: 'checkbox', libelle: 'Yes/No', stable_id: 99 }, { libelle: 'Nom', mandatory: true, condition: ds_eq(champ_value(99), constant(true)) }]) }
   let!(:dossier) { create(:dossier, :en_construction, :with_entreprise, procedure: procedure) }
 
   scenario 'A instructeur can signin by email' do
@@ -74,6 +74,32 @@ describe 'Instructing a dossier:', js: true do
     dossier.reload
     expect(dossier.state).to eq(Dossier.states.fetch(:en_instruction))
 
+    # A mandatory annotation left empty: the autosave stream shows the alert
+    # and hides the decision tiles in the instruction modal, the next save
+    # puts them back
+    click_on 'Annotations privées'
+    fill_in 'Nom', with: ''
+    expect(page).to have_text 'Annotations enregistrées'
+
+    click_on 'Rendre une décision'
+    within('#modal-instruction-button') do
+      expect(page).to have_text('n’ont pas été correctement renseignées')
+      expect(page).to have_css('#instruction-action-tiles.hidden', visible: :all)
+    end
+    within('#modal-instruction-button') { click_on 'Fermer' }
+    # closing re-renders the modal content from the server; wait for it so the
+    # next autosave stream lands on the fresh content
+    expect(page).to have_css('#alert-error-annotation li', text: 'Nom', visible: :all)
+
+    fill_in 'Nom', with: 'John Doe'
+    click_on 'Rendre une décision'
+    within('#modal-instruction-button') do
+      expect(page).to have_link('Accepter le dossier')
+      expect(page).to have_css('#alert-error-annotation.hidden', visible: :all)
+    end
+    within('#modal-instruction-button') { click_on 'Fermer' }
+
+    visit instructeur_dossier_path(procedure, dossier, statut: 'suivis')
     click_on 'Rendre une décision'
 
     within('.instruction-button') do
