@@ -74,6 +74,10 @@ describe Fog::OpenStack::Storage::Real, '#delete_multiple_objects against a real
     body = '{"Number Deleted": 1, "Number Not Found": 1, "Errors": []}'
     "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: #{body.bytesize}\r\nConnection: close\r\n\r\n#{body}"
   end
+  # Swift's keep-alive whitespace, the stream cut before the JSON report.
+  let(:cut_stream) do
+    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n   "
+  end
 
   before { stub_const('OpenStackBulkDeletePatch::RETRY_INTERVAL', 0) }
   after { server.close }
@@ -108,6 +112,25 @@ describe Fog::OpenStack::Storage::Real, '#delete_multiple_objects against a real
     thread = serve(*[bad_gateway] * Excon.defaults[:retry_limit])
 
     expect { real.delete_multiple_objects('bucket', ['a']) }.to raise_error(Excon::Error::BadGateway)
+    thread.join(5)
+
+    expect(bodies.size).to eq(Excon.defaults[:retry_limit])
+  end
+
+  it 'replays the request when the 200 stream is cut before the JSON report' do
+    thread = serve(cut_stream, ok)
+
+    response = real.delete_multiple_objects('bucket', ['a', 'b'])
+    thread.join(5)
+
+    expect(response.body).to eq('Number Deleted' => 1, 'Number Not Found' => 1, 'Errors' => [])
+    expect(bodies).to eq(["bucket/a\nbucket/b", "bucket/a\nbucket/b"])
+  end
+
+  it 'gives up once every stream was cut' do
+    thread = serve(*[cut_stream] * Excon.defaults[:retry_limit])
+
+    expect { real.delete_multiple_objects('bucket', ['a']) }.to raise_error(Fog::JSON::DecodeError)
     thread.join(5)
 
     expect(bodies.size).to eq(Excon.defaults[:retry_limit])
