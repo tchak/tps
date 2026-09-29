@@ -9,6 +9,10 @@ describe APIEntreprise::RateLimiter do
     Kredis.redis.del(described_class.remaining_key(pool), described_class.reset_key(pool))
   end
 
+  after do
+    Kredis.redis.del(described_class.remaining_key(pool), described_class.reset_key(pool))
+  end
+
   describe '.throttled?' do
     context 'when Redis has no state' do
       it 'returns false' do

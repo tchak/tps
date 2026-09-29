@@ -473,6 +473,8 @@ describe APIEntreprise::API do
       allow_any_instance_of(APIEntrepriseToken).to receive(:expired?).and_return(false)
     end
 
+    after { Kredis.redis.del(APIEntreprise::RateLimiter.remaining_key(pool), APIEntreprise::RateLimiter.reset_key(pool)) }
+
     describe 'RateLimiter.calibrate! via response headers' do
       before do
         stub_request(:get, /https:\/\/entreprise.api.gouv.fr\/v4\/insee\/sirene\/etablissements\/#{siret}/)
