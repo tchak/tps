@@ -11,13 +11,15 @@ import {
   ListBoxSection,
   Collection,
   Header,
-  useFilter
+  ButtonContext,
+  useFilter,
+  useSlottedContext
 } from 'react-aria-components';
 import type {
   SelectProps as AriaSelectProps,
   AutocompleteProps
 } from 'react-aria-components';
-import { useState, useMemo, useRef, useCallback, type Key } from 'react';
+import { useState, useMemo, useRef, useCallback, useId, type Key } from 'react';
 import { flushSync } from 'react-dom';
 import * as s from 'superstruct';
 import { Plural, useLingui } from '@lingui/react/macro';
@@ -122,7 +124,8 @@ function Select<M extends SelectionMode = 'single'>({
         <Autocomplete<Item> filter={filter}>
           <SearchField
             autoFocus
-            aria-label={t`Rechercher dans la liste`}
+            aria-label={labelId ? undefined : t`Rechercher dans la liste`}
+            aria-labelledby={labelId}
             placeholder={t`Rechercher`}
             style={{ margin: 4 }}
           />
@@ -191,12 +194,26 @@ function MultipleSelectValue({
 }) {
   const selectButtonRef = useRef<HTMLButtonElement>(null);
   const { t } = useLingui();
+  const valueId = useId();
+  const buttonContext = useSlottedContext(ButtonContext);
+  const describedBy = [buttonContext?.['aria-describedby'], valueId]
+    .filter(Boolean)
+    .join(' ');
   return (
     <SelectValue<Item>>
       {({ selectedItems, state, defaultChildren }) => (
         <>
-          <Button id={triggerId} className="fr-select" ref={selectButtonRef}>
-            <span className="react-aria-SelectValue" data-placeholder>
+          <Button
+            id={triggerId}
+            className="fr-select"
+            ref={selectButtonRef}
+            aria-describedby={describedBy}
+          >
+            <span
+              id={valueId}
+              className="react-aria-SelectValue"
+              data-placeholder
+            >
               {selectedLabel(selectedItems.length, selectedLabels) ?? (
                 <Plural
                   value={selectedItems.length}
