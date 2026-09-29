@@ -16,6 +16,7 @@ fr:
       administrators_list:
         title: Administrateurs de la démarche
       index:
+        applications: Dossiers
         statuts:
           a-suivre: "À suivre"
           suivis: "Suivis par moi"

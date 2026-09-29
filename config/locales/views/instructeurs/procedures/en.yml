@@ -16,6 +16,7 @@ en:
       administrators_list:
         title: Procedure administrators
       index:
+        applications: Applications
         statuts:
           a-suivre: "To follow"
           suivis: "Followed by me"
