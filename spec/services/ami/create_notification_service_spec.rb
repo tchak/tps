@@ -65,6 +65,7 @@ RSpec.describe Ami::CreateNotificationService do
     let(:user) { create(:user) }
     let(:dossier) { create(:dossier, :en_instruction, :with_individual, procedure:, user:) }
     let(:event_date) { "2026-03-02T12:34:56+01:00" }
+    let(:formatted_dossier_id) { ActiveSupport::NumberHelper.number_to_delimited(dossier.id, delimiter: "\u202F") }
 
     before do
       create(
@@ -96,26 +97,94 @@ RSpec.describe Ami::CreateNotificationService do
       )
     end
 
-    it 'uses the same wording as the user notification email subject' do
+    # Les libellés ne suivent plus les modèles d'email, que l'administrateur
+    # personnalise par démarche : ils sont figés dans config/locales/ami.*.yml.
+    it 'words the notification from the application, not from the email template' do
+      allow(dossier).to receive(:email_template_for).and_call_original
       payload = described_class.new(dossier:, trigger: :dossier_state_change, state: nil).create_notification_payload(event_date:)
 
       expect(payload).to include(
-        content_title: APPLICATION_NAME,
-        content_body: dossier.email_template_for(Dossier.states.fetch(:en_instruction)).subject_for_dossier(dossier)
+        content_title: "Dossier en cours de traitement",
+        content_body: "Retrouvez votre démarche «\u00A0#{procedure.libelle}\u00A0» n°\u00A0#{formatted_dossier_id}."
       )
+      expect(dossier).not_to have_received(:email_template_for)
+    end
+
+    it 'groups the digits of the dossier number with narrow no-break spaces' do
+      allow(dossier).to receive(:id).and_return(12_345_678)
+      payload = described_class.new(dossier:, trigger: :dossier_state_change, state: nil).create_notification_payload(event_date:)
+
+      expect(payload[:content_body]).to end_with("n°\u00A012\u202F345\u202F678.")
+    end
+
+    it 'speaks the language of the user' do
+      allow(dossier).to receive(:user_locale).and_return(:en)
+      payload = described_class.new(dossier:, trigger: :dossier_state_change, state: nil).create_notification_payload(event_date:)
+
+      expect(payload).to include(content_title: "File being processed")
     end
 
     context 'when dossier is brouillon' do
       let(:dossier) { create(:dossier, :brouillon, :with_individual, procedure:, user:) }
 
-      it 'builds a creation-oriented payload' do
+      it 'invites the user to resume it' do
         payload = described_class.new(dossier:, trigger: :dossier_state_change, state: nil).create_notification_payload(event_date:)
 
         expect(payload).to include(
-          content_title: APPLICATION_NAME,
-          content_body: I18n.t("dossier_mailer.notify_new_draft.subject", libelle_demarche: dossier.procedure.libelle),
+          content_title: "Reprendre votre brouillon",
+          content_body: "Complétez votre démarche «\u00A0#{procedure.libelle}\u00A0» depuis l’application ou votre compte #{ApplicationHelper::APP_HOST}.",
           item_generic_status: "new"
         )
+      end
+    end
+
+    context 'when the dossier goes back to instruction' do
+      it 'says the decision is being reviewed again' do
+        payload = described_class.new(dossier:, trigger: :dossier_state_change, state: :repasser_en_instruction).create_notification_payload(event_date:)
+
+        expect(payload).to include(
+          content_title: "Dossier en cours de réexamen",
+          content_body: "Votre dossier n°\u00A0#{formatted_dossier_id} est en train d’être réexaminé (#{procedure.libelle})."
+        )
+      end
+    end
+
+    context 'when the procedure requires a read receipt' do
+      let(:procedure) { create(:procedure, :published, :for_individual, accuse_lecture: true) }
+      let(:dossier) { create(:dossier, :accepte, :with_individual, procedure:, user:) }
+
+      # La plateforme cache la décision jusqu'à ce que l'usager l'affiche : la
+      # notification ne doit pas la divulguer à sa place.
+      it 'does not reveal the decision' do
+        payload = described_class.new(dossier:, trigger: :dossier_state_change, state: nil).create_notification_payload(event_date:)
+
+        expect(payload).to include(
+          content_title: "Voir la décision sur votre dossier",
+          content_body: "Consultez dès maintenant la décision liée à votre démarche «\u00A0#{procedure.libelle}\u00A0» n°\u00A0#{formatted_dossier_id} depuis votre compte #{ApplicationHelper::APP_HOST}."
+        )
+      end
+
+      it 'names the decision once the user has agreed to read it' do
+        dossier.update!(accuse_lecture_agreement_at: Time.zone.now)
+        payload = described_class.new(dossier:, trigger: :dossier_state_change, state: nil).create_notification_payload(event_date:)
+
+        expect(payload).to include(content_title: "Dossier accepté")
+      end
+
+      it 'still names a state that is not a decision' do
+        payload = described_class.new(dossier:, trigger: :dossier_state_change, state: :en_instruction).create_notification_payload(event_date:)
+
+        expect(payload).to include(content_title: "Dossier en cours de traitement")
+      end
+    end
+
+    context 'when the procedure does not require a read receipt' do
+      let(:dossier) { create(:dossier, :accepte, :with_individual, procedure:, user:) }
+
+      it 'names the decision' do
+        payload = described_class.new(dossier:, trigger: :dossier_state_change, state: nil).create_notification_payload(event_date:)
+
+        expect(payload).to include(content_title: "Dossier accepté")
       end
     end
 
@@ -124,10 +193,28 @@ RSpec.describe Ami::CreateNotificationService do
         payload = described_class.new(dossier:, trigger: :messagerie_message, state: nil).create_notification_payload(event_date:)
 
         expect(payload).to include(
-          content_title: APPLICATION_NAME,
-          content_body: I18n.t("dossier_mailer.notify_new_answer.subject", dossier_id: dossier.id, libelle_demarche: dossier.procedure.libelle),
+          content_title: "Nouveau message",
+          content_body: "Lire le message concernant votre démarche «\u00A0#{procedure.libelle}\u00A0» n°\u00A0#{formatted_dossier_id}.",
           item_generic_status: "wip"
         )
+      end
+    end
+
+    context 'when triggered by a correction request' do
+      it 'asks the user to act rather than to read' do
+        payload = described_class.new(dossier:, trigger: :pending_correction, state: nil).create_notification_payload(event_date:)
+
+        expect(payload).to include(
+          content_title: "Corriger votre dossier",
+          content_body: "Complétez votre démarche «\u00A0#{procedure.libelle}\u00A0» depuis l’application ou votre compte #{ApplicationHelper::APP_HOST}."
+        )
+      end
+
+      # La demande de correction se lit dans la messagerie, comme un message.
+      it 'links to the messagerie' do
+        payload = described_class.new(dossier:, trigger: :pending_correction, state: nil).create_notification_payload(event_date:)
+
+        expect(payload[:content_link]).to end_with("/dossiers/#{dossier.id}/messagerie")
       end
     end
   end
