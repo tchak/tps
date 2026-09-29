@@ -151,23 +151,35 @@ class ProcedureRevision < ApplicationRecord
     end
   end
 
+  # The type de champ is left in place: it lives until the next publication
+  # (or reset) of the procedure, which purges the types de champ no revision
+  # lays out any more (ProcedurePublishConcern).
   def remove_type_de_champ(stable_id)
     edit_type_de_champs do
-      coordinate, tdc = coordinate_and_tdc(stable_id)
+      coordinate, _ = coordinate_and_tdc(stable_id)
 
       # in case of replay
       next if coordinate.nil?
 
-      children = children_of(tdc).to_a
-      coordinate.destroy
-
-      children.each(&:destroy_if_orphan)
-      tdc.destroy_if_orphan
-
-      ProcedureRevisionTypeDeChamp.where(id: coordinate.siblings, position: coordinate.position..).unscope(:eager_load).update_all("position = position - 1")
-
-      coordinate
+      remove_coordinate(coordinate)
     end
+  end
+
+  # The coordinates the tree leaves out (TypeDeChampTree.from_coordinates): the
+  # children of a former repetition, a legacy type de champ without a type, a
+  # duplicate of a stable id. Cloned into every next revision otherwise.
+  def coordinates_out_of_tree
+    laid_out = TypeDeChampTree.from_coordinates(revision_type_de_champs).nodes.to_set(&:type_de_champ_id)
+
+    revision_type_de_champs.reject { laid_out.include?(it.type_de_champ_id) }
+  end
+
+  # Under the lock of the revision, at publication: the positions of the
+  # siblings shift. The tree is left as it is: it never held them.
+  def remove_coordinates_out_of_tree
+    # reloaded: a removal shifts the positions of the siblings left in place
+    coordinates_out_of_tree.each { remove_coordinate(it.reload) }
+    revision_type_de_champs.reset
   end
 
   def move_up_type_de_champ(stable_id)
@@ -387,6 +399,15 @@ class ProcedureRevision < ApplicationRecord
   end
 
   private
+
+  # cascades to the children coordinates of a repetition
+  def remove_coordinate(coordinate)
+    coordinate.destroy
+
+    ProcedureRevisionTypeDeChamp.where(id: coordinate.siblings, position: coordinate.position..).unscope(:eager_load).update_all("position = position - 1")
+
+    coordinate
+  end
 
   def compute_estimated_fill_duration
     public_root_type_de_champs.sum do |tdc|

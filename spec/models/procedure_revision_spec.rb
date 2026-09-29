@@ -432,16 +432,21 @@ describe ProcedureRevision do
       it 'can remove its children' do
         draft.remove_type_de_champ(child.stable_id)
 
-        expect { child.reload }.to raise_error ActiveRecord::RecordNotFound
+        expect(draft.children_of(type_de_champ_repetition).size).to eq(1)
         expect(draft.public_root_type_de_champs.size).to eq(1)
       end
 
-      it 'can remove the parent' do
+      it 'can remove the parent, along with its children' do
         draft.remove_type_de_champ(type_de_champ_repetition.stable_id)
 
-        expect { child.reload }.to raise_error ActiveRecord::RecordNotFound
-        expect { type_de_champ_repetition.reload }.to raise_error ActiveRecord::RecordNotFound
-        expect(draft.public_root_type_de_champs).to be_empty
+        expect(draft.revision_type_de_champs).to be_empty
+      end
+
+      it 'leaves the types de champ in place until the next publication' do
+        draft.remove_type_de_champ(type_de_champ_repetition.stable_id)
+
+        expect { child.reload }.not_to raise_error
+        expect { type_de_champ_repetition.reload }.not_to raise_error
       end
 
       context 'when there already is a revision with this child' do
@@ -464,6 +469,40 @@ describe ProcedureRevision do
           expect(new_draft.public_root_type_de_champs).to be_empty
         end
       end
+    end
+  end
+
+  describe '#remove_coordinates_out_of_tree' do
+    let(:procedure) { create(:procedure, public_type_de_champs: [{ type: :text }, { type: :repetition, children: [{ type: :text }, { type: :integer_number }] }, { type: :text }]) }
+
+    it 'removes the children coordinates of a former repetition' do
+      repetition = draft.find_and_ensure_exclusive_use(type_de_champ_repetition.stable_id)
+      draft.update_type_de_champ(repetition.becomes_type('text'), type_champ: 'text')
+      children = draft.revision_type_de_champs.reject(&:root?)
+      expect(children.size).to eq(2)
+      expect(draft.coordinates_out_of_tree).to match_array(children)
+
+      expect { draft.remove_coordinates_out_of_tree }.not_to change { ProcedureRevision.find(draft.id).type_de_champ_tree }
+
+      expect(draft.revision_type_de_champs.size).to eq(3)
+      expect(draft.public_revision_type_de_champs.map(&:position)).to eq([0, 1, 2])
+      expect(TypeDeChamp.where(id: children.map(&:type_de_champ_id)).count).to eq(2)
+    end
+
+    it 'removes the coordinate of a legacy type de champ without a type, and closes the gap' do
+      first, repetition, last = draft.public_revision_type_de_champs
+      TypeDeChamp.where(id: first.type_de_champ_id).update_all(type_champ: nil)
+      draft.reload
+
+      draft.remove_coordinates_out_of_tree
+
+      expect(draft.public_revision_type_de_champs.map(&:stable_id)).to eq([repetition.stable_id, last.stable_id])
+      expect(draft.public_revision_type_de_champs.map(&:position)).to eq([0, 1])
+    end
+
+    it 'leaves a laid-out draft alone' do
+      expect(draft.coordinates_out_of_tree).to be_empty
+      expect { draft.remove_coordinates_out_of_tree }.not_to change { draft.revision_type_de_champs.reload.map(&:id) }
     end
   end
 

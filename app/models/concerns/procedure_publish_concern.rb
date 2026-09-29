@@ -46,10 +46,10 @@ module ProcedurePublishConcern
     if published_revision.present? && draft_changed?
       reset!
       transaction do
-        draft_revision.type_de_champs.filter(&:only_present_on_draft?).each(&:destroy)
         draft_revision.update(dossier_submitted_message: nil)
         draft_revision.destroy
         update!(draft_revision: create_new_revision(published_revision))
+        purge_type_de_champs_laid_out_by_no_revision
       end
     end
   end
@@ -109,13 +109,27 @@ module ProcedurePublishConcern
     # the coordinates before the next draft is cloned from them
     draft_revision.edit_type_de_champs do
       cleanup_type_de_champs_options!
-      cleanup_type_de_champs_children!
+      draft_revision.remove_coordinates_out_of_tree
       nullify_unused_referentiels
     end
     self.published_revision = draft_revision
     self.draft_revision = create_new_revision
     save!(context: :publication)
     published_revision.update_columns(published_at: Time.current, administrateur_id: administrateur.id)
+    purge_type_de_champs_laid_out_by_no_revision
+  end
+
+  # Removing a type de champ from the draft only drops its coordinate: the
+  # types de champ of the procedure which no revision lays out any more are
+  # purged here, once the new draft holds its tree. The trees of the
+  # revisions, not the aggregate: it lays out what the dossiers may hold
+  # today, and leaves out what a past revision still holds (the content of
+  # a repetition turned into another type).
+  def purge_type_de_champs_laid_out_by_no_revision
+    laid_out = revisions.select(:id, :type_de_champ_tree).flat_map { it.type_de_champ_tree.nodes.map(&:type_de_champ_id) }
+
+    # destroyed one by one: the template and the notice attached go with them
+    type_de_champs.where.not(id: laid_out).find_each(&:destroy)
   end
 
   def move_new_children_to_new_parent_coordinate(new_draft)
@@ -136,12 +150,6 @@ module ProcedurePublishConcern
     draft_revision.type_de_champs.each do |type_de_champ|
       type_de_champ.update!(options: type_de_champ.clean_options)
     end
-  end
-
-  def cleanup_type_de_champs_children!
-    draft_revision.revision_type_de_champs
-      .filter(&:orphan?)
-      .each { draft_revision.remove_type_de_champ(_1.stable_id) }
   end
 
   def nullify_unused_referentiels

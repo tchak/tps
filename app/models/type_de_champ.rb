@@ -219,12 +219,6 @@ class TypeDeChamp < ApplicationRecord
     end
   end
 
-  def destroy_if_orphan
-    if revision_type_de_champs.empty?
-      destroy
-    end
-  end
-
   # dom ids follow the stable_id so they survive the revision clones
   def to_key = ([stable_id] if stable_id)
 
