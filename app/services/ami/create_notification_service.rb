@@ -95,10 +95,16 @@ module Ami
           part,
           scope: [:ami, :notifications, notification_key],
           libelle_demarche: dossier.procedure.libelle,
-          dossier_id: dossier.id,
+          dossier_id: formatted_dossier_id,
           app_host: ApplicationHelper::APP_HOST
         )
       end
+    end
+
+    # Plain text, so number_with_html_delimiter (a styled span) cannot be used:
+    # a narrow no-break space keeps the digit groups on one line.
+    def formatted_dossier_id
+      ActiveSupport::NumberHelper.number_to_delimited(dossier.id, delimiter: " ")
     end
 
     def notification_key

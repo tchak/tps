@@ -65,6 +65,7 @@ RSpec.describe Ami::CreateNotificationService do
     let(:user) { create(:user) }
     let(:dossier) { create(:dossier, :en_instruction, :with_individual, procedure:, user:) }
     let(:event_date) { "2026-03-02T12:34:56+01:00" }
+    let(:formatted_dossier_id) { ActiveSupport::NumberHelper.number_to_delimited(dossier.id, delimiter: " ") }
 
     before do
       create(
@@ -104,9 +105,16 @@ RSpec.describe Ami::CreateNotificationService do
 
       expect(payload).to include(
         content_title: "Dossier en cours de traitement",
-        content_body: "Retrouvez votre démarche « #{procedure.libelle} » n° #{dossier.id}."
+        content_body: "Retrouvez votre démarche « #{procedure.libelle} » n° #{formatted_dossier_id}."
       )
       expect(dossier).not_to have_received(:email_template_for)
+    end
+
+    it 'groups the digits of the dossier number with narrow no-break spaces' do
+      allow(dossier).to receive(:id).and_return(12_345_678)
+      payload = described_class.new(dossier:, trigger: :dossier_state_change, state: nil).create_notification_payload(event_date:)
+
+      expect(payload[:content_body]).to end_with("n° 12 345 678.")
     end
 
     it 'speaks the language of the user' do
@@ -136,7 +144,7 @@ RSpec.describe Ami::CreateNotificationService do
 
         expect(payload).to include(
           content_title: "Dossier en cours de réexamen",
-          content_body: "Votre dossier n° #{dossier.id} est en train d’être réexaminé (#{procedure.libelle})."
+          content_body: "Votre dossier n° #{formatted_dossier_id} est en train d’être réexaminé (#{procedure.libelle})."
         )
       end
     end
@@ -152,7 +160,7 @@ RSpec.describe Ami::CreateNotificationService do
 
         expect(payload).to include(
           content_title: "Voir la décision sur votre dossier",
-          content_body: "Consultez dès maintenant la décision liée à votre démarche « #{procedure.libelle} » n° #{dossier.id} depuis votre compte #{ApplicationHelper::APP_HOST}."
+          content_body: "Consultez dès maintenant la décision liée à votre démarche « #{procedure.libelle} » n° #{formatted_dossier_id} depuis votre compte #{ApplicationHelper::APP_HOST}."
         )
       end
 
@@ -186,7 +194,7 @@ RSpec.describe Ami::CreateNotificationService do
 
         expect(payload).to include(
           content_title: "Nouveau message",
-          content_body: "Lire le message concernant votre démarche « #{procedure.libelle} » n° #{dossier.id}.",
+          content_body: "Lire le message concernant votre démarche « #{procedure.libelle} » n° #{formatted_dossier_id}.",
           item_generic_status: "wip"
         )
       end
