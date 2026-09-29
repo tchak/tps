@@ -137,7 +137,7 @@ describe "procedure filters" do
       find_field("Au").send_keys(:enter)
     end
 
-    clear_button = find_button(text: "Date de création : du 01 mars 2020 au 15 mars 2020")
+    clear_button = find_button(text: "Date de création : du 01/03/2020 au 15/03/2020")
 
     within ".dossiers-table" do
       expect(page).to have_link(new_unfollow_dossier_2.id.to_s, exact: true)
