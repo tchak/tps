@@ -57,8 +57,10 @@
   }
 }
 
-// Prevent fixed footer from overlapping the real page footer
-body:has(.dossier-edit-footer) .fr-footer {
+// The fixed footer covers the bottom of the viewport: reserve its height below
+// the site footer too, or it hides the site footer's last lines. The site
+// footer partials share no class, only their role.
+body:has(.fixed-footer) footer[role='contentinfo'] {
   @media (max-width: 62em) {
     padding-bottom: 120px + $default-padding;
   }
