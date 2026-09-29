@@ -1,11 +1,6 @@
 import { ApplicationController } from './application_controller';
 import { httpRequest } from '@utils';
 
-declare const window: Window &
-  typeof globalThis & {
-    dsfr?: (el: HTMLElement) => { modal: { disclose: () => void } };
-  };
-
 export default class extends ApplicationController {
   static targets = ['modal'];
   declare readonly modalTarget: HTMLElement;
@@ -28,11 +23,9 @@ export default class extends ApplicationController {
     this.abortController?.abort();
   }
 
-  openWithIds(event: CustomEvent): void {
+  storeDossierIds(event: CustomEvent): void {
     const ids: string[] = event.detail?.ids ?? [];
     this.modalTarget.dataset.dossierIds = ids.join(',');
-
-    this.waitForDsfrAndDisclose();
   }
 
   addBatchIdsToUrl(event: Event): void {
@@ -58,15 +51,4 @@ export default class extends ApplicationController {
     if (!resetUrl) return;
     await httpRequest(resetUrl, { method: 'POST' }).turbo();
   };
-
-  private waitForDsfrAndDisclose(): void {
-    if (
-      window.dsfr &&
-      this.modalTarget.getAttribute('data-fr-js-modal') === 'true'
-    ) {
-      window.dsfr(this.modalTarget).modal.disclose();
-    } else {
-      requestAnimationFrame(() => this.waitForDsfrAndDisclose());
-    }
-  }
 }
