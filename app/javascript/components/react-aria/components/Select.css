@@ -24,7 +24,6 @@
     contain: inline-size;
 
     &[data-placeholder] {
-      color: var(--text-color-placeholder);
       font-weight: normal;
     }
 

@@ -176,6 +176,16 @@ suite('MultipleSelect labelled by a Rails label', () => {
     expect(getComputedStyle(button.element()).backgroundColor).toBe(idle);
   });
 
+  test('writes the trigger text in the color of a DSFR select', async () => {
+    const button = page.getByRole('button', { name: /Menu/ });
+    await expect.element(button).toBeInTheDocument();
+    const value = button.element().querySelector('.react-aria-SelectValue')!;
+
+    expect(getComputedStyle(value).color).toBe(
+      getComputedStyle(button.element()).color
+    );
+  });
+
   test('labels the search field with the champ label', async () => {
     await userEvent.click(page.getByRole('button', { name: /Menu/ }));
 
