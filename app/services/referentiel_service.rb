@@ -11,6 +11,8 @@ class ReferentielService
   API_TIMEOUT = 4 # in seconds
   MAX_FILE_SIZE = 1.megabyte
 
+  DOSSIER_NUMBER_TAG = "{dossier_number}"
+
   attr_reader :referentiel, :service
 
   def initialize(referentiel:, timeout: API_TIMEOUT)
@@ -115,6 +117,9 @@ class ReferentielService
     when Hash
       values_source[tag_id]
     else
+      # Le numéro de dossier ne vient pas d'un champ : il se lit sur le dossier lui-même.
+      return values_source.id&.to_s if tag_id == DOSSIER_NUMBER_TAG
+
       stable_id = tag_id.delete_prefix("tdc").to_i
       champ_for_tag(values_source, stable_id, row_id)&.value
     end

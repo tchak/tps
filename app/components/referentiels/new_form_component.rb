@@ -75,7 +75,8 @@ class Referentiels::NewFormComponent < Referentiels::MappingFormBase
       .map { |coord| { id: "tdc#{coord.stable_id}", libelle: coord.libelle } }
 
     query_tag = { id: "{query}", libelle: "Valeur saisie par l’usager", highlight: true }
+    dossier_number_tag = { id: ReferentielService::DOSSIER_NUMBER_TAG, libelle: "Numéro du dossier", highlight: true }
 
-    { url_tags: [query_tag] + field_tags }
+    { url_tags: [query_tag, dossier_number_tag] + field_tags }
   end
 end
