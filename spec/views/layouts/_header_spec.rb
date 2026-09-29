@@ -9,7 +9,6 @@ describe 'layouts/_header', type: :view do
     allow(view).to receive(:current_instructeur).and_return(current_instructeur)
     allow(view).to receive(:administrateur_signed_in?).and_return(false)
     allow(view).to receive(:expert_signed_in?).and_return(false)
-    allow(view).to receive(:localization_enabled?).and_return(false)
 
     if user
       sign_in user

@@ -63,8 +63,7 @@
                     = link_to t('help'), t("links.common.faq.url"), class: 'fr-btn'
 
 
-                - if localization_enabled?
-                  %li= render partial: 'layouts/locale_dropdown'
+                %li= render partial: 'layouts/locale_dropdown'
 
                 - if is_instructeur_context || is_administrateur_context
                   %li.fr-mr-1v.fr-hidden.fr-unhidden-lg

@@ -32,7 +32,7 @@ class ApplicationController < ActionController::Base
   rescue_from DossierChampsConcern::ChampNotInRevisionError, with: :champ_not_in_revision
 
   helper_method :multiple_devise_profile_connect?, :instructeur_signed_in?, :current_instructeur, :current_expert, :expert_signed_in?,
-    :administrateur_signed_in?, :current_administrateur, :current_account, :localization_enabled?, :set_locale, :current_expert_not_instructeur?,
+    :administrateur_signed_in?, :current_administrateur, :current_account, :set_locale, :current_expert_not_instructeur?,
     :gestionnaire_signed_in?, :current_gestionnaire, :extra_query_params, :chatbot_disabled_page?
 
   before_action do
@@ -114,14 +114,6 @@ class ApplicationController < ActionController::Base
   end
 
   alias_method :pundit_user, :current_user
-
-  def localization_enabled?
-    ENV.fetch('LOCALIZATION_ENABLED', 'false') == 'true' || cookies[:locale].present? || !browser_prefers_french?
-  end
-
-  def browser_prefers_french?
-    locale_from_accept_language == :fr
-  end
 
   def set_locale(locale)
     return if !locale.respond_to?(:to_sym)
@@ -442,7 +434,7 @@ class ApplicationController < ActionController::Base
     unchecked_locale = extract_locale_from_query_params ||
       extract_locale_from_cookie ||
       extract_locale_from_user ||
-      extract_locale_from_accept_language_header ||
+      locale_from_accept_language ||
       I18n.default_locale
 
     locale = unchecked_locale.to_sym.in?(I18n.available_locales) ? unchecked_locale : I18n.default_locale
@@ -462,12 +454,6 @@ class ApplicationController < ActionController::Base
 
   def extract_locale_from_cookie
     cookies[:locale]
-  end
-
-  def extract_locale_from_accept_language_header
-    if localization_enabled?
-      locale_from_accept_language
-    end
   end
 
   # "en-US,fr;q=0.8" => :en
