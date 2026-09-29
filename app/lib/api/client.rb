@@ -5,7 +5,16 @@ class API::Client
 
   TIMEOUT = 10
 
+  # L'AC racine du ministère de l'Intérieur n'est pas dans le magasin système : le bundle
+  # est rattaché au domaine appelé, pour que tout appelant l'obtienne sans le savoir.
+  CA_BUNDLES = {
+    URI(API_RNF_URL).host => Rails.root.join('config/certs/ac-racine-ministere-interieur-2018.pem').to_s,
+  }.freeze
+
   def call(url:, params: nil, body: nil, json: nil, headers: nil, method: :get, authorization_token: nil, schema: nil, timeout: TIMEOUT, **typhoeus_options)
+    # un cainfo passé explicitement par l'appelant reste prioritaire
+    typhoeus_options = ca_bundle_options(url).merge(typhoeus_options)
+
     response = case method
     when :get
       Typhoeus.get(url,
@@ -48,6 +57,12 @@ class API::Client
   end
 
   private
+
+  def ca_bundle_options(url)
+    cainfo = CA_BUNDLES[URI(url.to_s).host]
+
+    cainfo.nil? ? {} : { cainfo: }
+  end
 
   def headers_with_authorization(headers, json, authorization_token:)
     headers ||= {}

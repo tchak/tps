@@ -3,10 +3,8 @@
 class RNFService
   include Dry::Monads[:result]
 
-  CA_BUNDLE = Rails.root.join('config/certs/ac-racine-ministere-interieur-2018.pem').to_s
-
   def call(rnf_id:)
-    result = API::Client.new.(url: "#{url}/#{rnf_id}", schema:, headers:, cainfo: CA_BUNDLE)
+    result = API::Client.new.(url: "#{url}/#{rnf_id}", schema:, headers:)
     case result
     in Success(body:)
       Success(body)

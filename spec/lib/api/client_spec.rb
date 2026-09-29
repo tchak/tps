@@ -3,8 +3,28 @@
 require 'rails_helper'
 
 describe API::Client do
+  describe 'CA_BUNDLES' do
+    it 'holds only the root CA published at interieur.gouv.fr/IGC/Certificat' do
+      anchors = OpenSSL::X509::Certificate.load(File.read(described_class::CA_BUNDLES.fetch(URI(API_RNF_URL).host)))
+
+      expect(anchors.map { OpenSSL::Digest::SHA256.hexdigest(it.to_der) })
+        .to eq(['79a1c910207c63a9875641c3955ccd1341338a5c5ebd8276846f8d2b3ce16727'])
+    end
+  end
+
   describe '#call' do
     let(:response) { instance_double(Typhoeus::Response, success?: true, body: '{}', code: 200, headers: { 'content-type' => 'application/json' }) }
+
+    # le bundle suit le domaine appelé : le RNF comme un référentiel configuré sur la même API
+    it 'passes the CA bundle of the called domain, and nothing on the other domains' do
+      allow(Typhoeus).to receive(:get).and_return(response)
+
+      described_class.new.call(url: "#{API_RNF_URL}/api/foundations/075-FDD-00003-01")
+      described_class.new.call(url: "https://example.org/thing")
+
+      expect(Typhoeus).to have_received(:get).with(anything, hash_including(cainfo: described_class::CA_BUNDLES.fetch(URI(API_RNF_URL).host)))
+      expect(Typhoeus).to have_received(:get).with("https://example.org/thing", hash_excluding(:cainfo))
+    end
 
     it 'sends a body on a PUT' do
       allow(Typhoeus).to receive(:put).and_return(response)
