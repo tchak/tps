@@ -43,8 +43,14 @@ describe Instructeurs::ClearFilterButtonsComponent, type: :component do
       let(:filter) { to_filter(['Date de création', { operator: 'match', value: ['15/06/2023'] }]) }
 
       it 'should get formatted value' do
-        expect(page).to have_text("15 juin 2023")
+        expect(page).to have_text("15/06/2023")
       end
+    end
+
+    context 'when filter is a date with an operator' do
+      let(:filter) { to_filter(['Date de création', { operator: 'before', value: ['2023-06-15'] }]) }
+
+      it { expect(page).to have_text("Date de création : avant le 15/06/2023") }
     end
 
     context 'when filter is a date range' do
@@ -52,20 +58,20 @@ describe Instructeurs::ClearFilterButtonsComponent, type: :component do
 
       it 'renders a single tag with both dates, removing the whole range' do
         expect(page).to have_button(count: 1)
-        expect(page).to have_text("Date de création : du 15 juin 2023 au 30 juin 2023")
+        expect(page).to have_text("Date de création : du 15/06/2023 au 30/06/2023")
         expect(page).to have_field('filter[filter][operator]', with: 'match', type: 'hidden')
       end
 
       context 'with only a start date' do
         let(:filter) { to_filter(['Date de création', { operator: 'between', value: ['2023-06-15', ''] }]) }
 
-        it { expect(page).to have_text("Date de création : à partir du 15 juin 2023") }
+        it { expect(page).to have_text("Date de création : à partir du 15/06/2023") }
       end
 
       context 'with only an end date' do
         let(:filter) { to_filter(['Date de création', { operator: 'between', value: ['', '2023-06-30'] }]) }
 
-        it { expect(page).to have_text("Date de création : jusqu’au 30 juin 2023") }
+        it { expect(page).to have_text("Date de création : jusqu’au 30/06/2023") }
       end
     end
 
@@ -78,7 +84,7 @@ describe Instructeurs::ClearFilterButtonsComponent, type: :component do
       end
 
       it 'should display all filters' do
-        text = "État du dossier : En constructionÉtat du dossier : En instructionDate de création : 15 juin 2023"
+        text = "État du dossier : En constructionÉtat du dossier : En instructionDate de création : 15/06/2023"
         expect(page).to have_text(text)
       end
     end
