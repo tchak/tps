@@ -5,10 +5,6 @@ describe 'Sign in', js: true do
 
   before { allow(FranceConnectService).to receive(:enabled?).and_return(true) }
 
-  # The browser prefers french, which hides the language selector
-  before { ENV['LOCALIZATION_ENABLED'] = 'true' }
-  after { ENV['LOCALIZATION_ENABLED'] = 'false' }
-
   scenario 'when a user is logged in english' do
     visit root_path
 

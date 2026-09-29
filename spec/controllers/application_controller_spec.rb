@@ -74,30 +74,6 @@ describe ApplicationController, type: :controller do
     end
   end
 
-  describe 'localization_enabled?' do
-    subject { @controller.send(:localization_enabled?) }
-
-    before { @request.headers['Accept-Language'] = accept_language }
-
-    context 'with a browser preferring french' do
-      let(:accept_language) { 'fr-FR,fr;q=0.9,en;q=0.8' }
-
-      it { is_expected.to be(false) }
-
-      context 'when a locale was chosen before' do
-        before { @request.cookies[:locale] = 'fr' }
-
-        it { is_expected.to be(true) }
-      end
-    end
-
-    context 'with a browser preferring english' do
-      let(:accept_language) { 'en-US,en;q=0.9,fr;q=0.8' }
-
-      it { is_expected.to be(true) }
-    end
-  end
-
   describe 'set_sentry_user and append_info_to_payload' do
     let(:current_user) { nil }
     let(:current_instructeur) { nil }
