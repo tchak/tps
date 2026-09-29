@@ -109,9 +109,9 @@ class TypesDeChamp::PieceJustificativeTypeDeChamp < TypeDeChamp
 
   def allowed_content_types
     if titre_identite?
-      families_to_content_types(%w[image_scan])
+      NATURE_IMAGE_TYPES
     elsif ocr_compatible?
-      families_to_content_types(%w[document_texte image_scan])
+      FORMAT_FAMILIES[:document_texte] + NATURE_IMAGE_TYPES
     elsif pj_limit_formats? && pj_format_families.present?
       families_to_content_types(pj_format_families)
     else

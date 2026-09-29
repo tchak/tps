@@ -109,7 +109,13 @@ describe TypesDeChamp::PieceJustificativeTypeDeChamp do
         expect(tdc.allowed_content_types).to include('application/pdf')
         expect(tdc.allowed_content_types).to include('image/jpeg')
         expect(tdc.allowed_content_types).not_to include('application/zip')
+        expect(tdc.allowed_content_types).not_to include('image/tiff', 'image/webp', 'image/gif')
       end
+    end
+
+    it 'accepts every image format of the image_scan family' do
+      tdc = create(:type_de_champ_piece_justificative, pj_limit_formats: '1', pj_format_families: ['image_scan'])
+      expect(tdc.allowed_content_types).to match_array(['image/jpeg', 'image/png', 'image/tiff', 'image/webp', 'image/gif'])
     end
 
     it 'restricts to selected families when pj_limit_formats enabled' do

@@ -134,11 +134,13 @@ FORMAT_FAMILIES = {
     'application/vnd.google-earth.kml+xml', 'application/gpx+xml',
     'text/tab-separated-values', 'text/csv', 'application/x-dbf',
   ],
-  image_scan: ['image/jpeg', 'image/png'],
+  image_scan: ['image/jpeg', 'image/png', 'image/tiff', 'image/webp', 'image/gif'],
   audio: ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/x-wav'],
   video: ['video/mp4', 'video/quicktime', 'video/3gpp', 'video/x-ms-wm'],
   archive: ['application/zip', 'application/x-zip-compressed', 'application/x-7z-compressed', 'application/vnd.rar', 'application/x-rar', 'application/gzip'],
 }.freeze
+
+NATURE_IMAGE_TYPES = ['image/jpeg', 'image/png'].freeze
 
 FORMAT_FAMILY_EXAMPLES = {
   document_texte: '.pdf, .doc, .docx, .odt, .txt, .rtf, .pages',
