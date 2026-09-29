@@ -452,8 +452,9 @@ module Administrateurs
         else
           flash_message_for_invalid_csv
         end
-        redirect_to admin_procedure_groupe_instructeurs_path(procedure)
       end
+
+      redirect_to admin_procedure_groupe_instructeurs_path(procedure)
     end
 
     def export_groupe_instructeurs
