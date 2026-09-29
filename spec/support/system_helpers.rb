@@ -138,7 +138,9 @@ module SystemHelpers
     suppress_turbo_poll
   end
 
-  POLLING_URL_PATTERN = %r{/polling}
+  # Only the polling actions: the Vite dev server also serves the poll
+  # controller's module (`/vite-test/shared/polling.ts`), which must load.
+  POLLING_URL_PATTERN = %r{/polling_(last_export|batch_operation)}
 
   def blur
     if page.has_css?('body', wait: 0)

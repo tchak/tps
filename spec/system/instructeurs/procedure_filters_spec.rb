@@ -247,13 +247,39 @@ describe "procedure filters" do
         expect(page).not_to have_link(new_unfollow_dossier_2.id.to_s, exact: true)
       end
 
+      # typed in a neighbouring filter, never submitted
+      fill_in "N°\u00A0dossier", with: '42'
+
       add_filter_value('Labels', second_label.name, type: :multi_select)
 
       within ".dossiers-table" do
         expect(page).to have_link(new_unfollow_dossier.id.to_s, exact: true)
         expect(page).to have_link(new_unfollow_dossier_2.id.to_s, exact: true)
       end
+
+      # the response refreshes the whole page: the combobox takes both values
+      # from the server, and the unsent text survives the morph
+      expect(page).to have_button("Labels : #{first_label.name}")
+      expect(page).to have_button("Labels : #{second_label.name}")
+      expect(selected_filter_values('Labels')).to contain_exactly(first_label.id.to_s, second_label.id.to_s)
+      expect(page).to have_field("N°\u00A0dossier", with: '42', exact: true)
+
+      # collapsing and expanding the filters replaces the whole component
+      click_button 'Afficher / masquer les filtres'
+      expect(page).to have_css('button[aria-expanded="false"]', text: 'Afficher / masquer les filtres')
+      expect(page).to have_field("N°\u00A0dossier", with: '42', visible: :hidden, exact: true)
+
+      click_button 'Afficher / masquer les filtres'
+      expect(page).to have_css('button[aria-expanded="true"]', text: 'Afficher / masquer les filtres')
+      expect(page).to have_field("N°\u00A0dossier", with: '42', exact: true)
     end
+  end
+
+  def selected_filter_values(libelle)
+    find_field(libelle)
+      .ancestor('.fr-ds-combobox__multiple')
+      .all('input[type="hidden"]', visible: false)
+      .map(&:value)
   end
 
   def add_filter_value(column_name, filter_value, type: :text)
