@@ -89,7 +89,7 @@ describe Users::RegistrationsController, type: :controller do
         end
 
         it 'redirects to confirmation page with signed email in url' do
-          email_param = CGI.parse(URI.parse(response.location).query)['email'].first
+          email_param = Rack::Utils.parse_nested_query(URI.parse(response.location).query)['email']
           decrypted_email = controller.message_encryptor_service.decrypt_and_verify(email_param, purpose: :email_confirmation)
           expect(decrypted_email).to eq(user[:email])
         end
@@ -110,7 +110,7 @@ describe Users::RegistrationsController, type: :controller do
         it 'redirects to confirmation page with signed email (not plain text)' do
           expect(response).to redirect_to(/\/users\/confirmation\/new\?email=/)
 
-          email_param = CGI.parse(URI.parse(response.location).query)['email'].first
+          email_param = Rack::Utils.parse_nested_query(URI.parse(response.location).query)['email']
           decrypted_email = controller.message_encryptor_service.decrypt_and_verify(email_param, purpose: :email_confirmation)
           expect(decrypted_email).to eq(user[:email])
         end
@@ -158,7 +158,7 @@ describe Users::RegistrationsController, type: :controller do
         non_scalar_email_request
 
         if response.redirect? && response.location.match?(/\/users\/confirmation\/new\?email=/)
-          email_param = CGI.parse(URI.parse(response.location).query)['email'].first
+          email_param = Rack::Utils.parse_nested_query(URI.parse(response.location).query)['email']
           decrypted_email = controller.message_encryptor_service.decrypt_and_verify(email_param, purpose: :email_confirmation)
           expect(decrypted_email).not_to eq(other_user.email)
         end

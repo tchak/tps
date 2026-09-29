@@ -33,7 +33,7 @@ module ProcedureContextConcern
 
   def find_prefill_token_in_context
     uri = URI(get_stored_location_for(:user))
-    CGI.parse(uri.query).dig("prefill_token")&.first if uri.query
+    Rack::Utils.parse_nested_query(uri.query)["prefill_token"]
   end
 
   def invalid_procedure_context
