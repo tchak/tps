@@ -35,7 +35,6 @@
     "@tiptap/pm": "^2.27.3",
     "@tiptap/suggestion": "^2.27.3",
     "@tmcw/togeojson": "^6.0.1",
-    "@vitest/browser": "^4.1.8",
     "@vitest/browser-playwright": "^4.1.8",
     "chartkick": "^5.0.1",
     "coldwired": "^0.18.4",
@@ -98,7 +97,7 @@
     "typescript-eslint": "^8.65.0",
     "vite": "^8.0.16",
     "vite-plugin-full-reload": "^1.2.0",
-    "vite-plugin-ruby": "^5.2.2",
+    "vite-plugin-ruby": "^5.2.4",
     "vitest": "^4.1.8"
   },
   "scripts": {

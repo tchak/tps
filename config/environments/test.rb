@@ -57,6 +57,12 @@ Rails.application.configure do
     config.log_level = :fatal
 
     config.assets.compile = false
+  else
+    # Sprockets resolves from the precompiled manifest first when one exists,
+    # and bin/parallel-rspec leaves one in public/assets-test: a later plain
+    # bin/rspec would serve that stale application.css instead of compiling
+    # the current stylesheets. Only CI serves the precompiled bundle.
+    config.assets.resolve_with = [:environment]
   end
 
   # Raises error for missing translations.
