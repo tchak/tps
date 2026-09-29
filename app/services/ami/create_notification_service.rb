@@ -104,7 +104,7 @@ module Ami
     # Plain text, so number_with_html_delimiter (a styled span) cannot be used:
     # a narrow no-break space keeps the digit groups on one line.
     def formatted_dossier_id
-      ActiveSupport::NumberHelper.number_to_delimited(dossier.id, delimiter: " ")
+      ActiveSupport::NumberHelper.number_to_delimited(dossier.id, delimiter: "\u202F")
     end
 
     def notification_key
