@@ -85,7 +85,7 @@ class Instructeurs::ClearFilterButtonsComponent < ApplicationComponent
     column_type = filter_column.column.type
 
     processed_value = if column_type == :date || column_type == :datetime
-      helpers.try_parse_format_date(value)
+      format_filter_date(value)
     else
       filter_column.column.label_for_value(value)
     end
@@ -94,7 +94,7 @@ class Instructeurs::ClearFilterButtonsComponent < ApplicationComponent
   end
 
   def human_date_range(filter)
-    start_date, end_date = filter.filter_values.map { helpers.try_parse_format_date(it) }
+    start_date, end_date = filter.filter_values.map { format_filter_date(it) }
 
     if start_date && end_date
       t('.date_range.between', start_date:, end_date:)
@@ -109,5 +109,13 @@ class Instructeurs::ClearFilterButtonsComponent < ApplicationComponent
     return "" if operator.in?(["in", "match"])
 
     t(".operators.#{operator}")
+  end
+
+  def format_filter_date(value)
+    return if value.blank?
+
+    l(Date.parse(value), format: :short)
+  rescue Date::Error
+    nil
   end
 end
