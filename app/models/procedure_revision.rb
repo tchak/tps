@@ -44,6 +44,8 @@ class ProcedureRevision < ApplicationRecord
 
   serialize :ineligibilite_rules, coder: LogicSerializer
 
+  # Stored with every edit of a draft, and once and for all on publication.
+  # Empty at creation, the column default: never null.
   attribute :type_de_champ_tree, :type_de_champ_tree
 
   # A write to a column no foreign key refers to: FOR UPDATE would have every
@@ -51,15 +53,9 @@ class ProcedureRevision < ApplicationRecord
   # FOR KEY SHARE.
   TYPE_DE_CHAMP_TREE_LOCK = 'FOR NO KEY UPDATE'
 
-  # Stored with every edit of a draft, and once and for all on publication. A
-  # revision not backfilled yet builds it from its coordinates.
-  def type_de_champ_tree
-    super || TypeDeChampTree.from_coordinates(revision_type_de_champs)
-  end
-
   # The tree as the coordinates have it by now: they remain what the editor
   # writes, the tree following them, until it edits the tree itself. For an
-  # edit made elsewhere: a new draft, a clone, the backfill.
+  # edit made elsewhere: a new draft, a clone, a recovery import.
   def store_type_de_champ_tree = edit_type_de_champs { self }
 
   def add_type_de_champ(params)

@@ -36,6 +36,7 @@ FactoryBot.define do
           parent: evaluator.parent)
 
         revision.save
+        revision.store_type_de_champ_tree if revision.persisted?
       end
     end
 
@@ -249,6 +250,7 @@ FactoryBot.define do
         end
 
         revision.save
+        revision.store_type_de_champ_tree if revision.persisted?
       end
 
       # TODO: drop
