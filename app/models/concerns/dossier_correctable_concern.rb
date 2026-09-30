@@ -64,6 +64,7 @@ module DossierCorrectableConcern
 
   def validate_pending_correction
     return unless procedure.sva_svr_enabled?
+    return if instructeur_buffer_stream?
     return if pending_correction.nil? || pending_correction.resolved?
 
     errors.add(:pending_correction, :blank)
