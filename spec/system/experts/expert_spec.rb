@@ -153,6 +153,15 @@ describe 'Inviting an expert:', js: true do
         expect(page).to have_content("unknown@example.fr : Cet expert n’est pas autorisé sur cette démarche")
         expect(page).to have_content("Une demande d’avis a été envoyée à #{allowed_expert.email}")
       end
+
+      scenario 'I do not see other experts emails even if I am instructeur on another procedure' do
+        create(:instructeur, user: expert.user)
+        login_as expert.user, scope: :user
+        visit avis_new_expert_avis_path(procedure, avis)
+
+        expect(page).to have_field('Emails')
+        expect(page.html).not_to include(allowed_expert.email)
+      end
     end
 
     context 'with dossiers having attached files', js: true do
