@@ -46,6 +46,7 @@ module Instructeurs
       if dossier.errors.blank? && dossier.can_passer_en_construction?
         dossier.instructeur_submit_en_construction!(instructeur: current_instructeur, motivation: submit_params[:motivation])
 
+        flash.notice = t('.success')
         redirect_to instructeur_dossier_path(dossier.procedure, dossier, statut: params[:statut])
       else
         render :show, layout: "empty_layout"

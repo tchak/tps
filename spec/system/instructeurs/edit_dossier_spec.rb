@@ -58,6 +58,7 @@ describe 'Editing a dossier as an instructeur:', js: true do
       end
 
       expect(page).to have_current_path(instructeur_dossier_path(procedure, dossier, statut: 'a-suivre'))
+      expect(page).to have_content('Vos modifications sur le dossier ont bien été enregistrées et l’usager a été notifié.')
 
       # the buffered change has been merged onto the dossier
       expect(main_value(dossier, 99)).to eq('Valeur corrigée par l’instructeur')
@@ -69,6 +70,7 @@ describe 'Editing a dossier as an instructeur:', js: true do
 
       # the usager is notified through the messagerie, with the detailed change and the motivation
       commentaire_body = dossier.commentaires.last.body
+      expect(commentaire_body).to include("a été modifié par un instructeur (#{procedure.libelle})")
       expect(commentaire_body).to include('a apporté les modifications suivantes')
       expect(commentaire_body).to include('<dt>Texte :</dt>')
       expect(commentaire_body).to include('<strong>Valeur corrigée par l’instructeur</strong>')

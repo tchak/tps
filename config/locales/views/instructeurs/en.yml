@@ -18,6 +18,8 @@ en:
       show:
         title: "Edit · File no. %{dossier_id} – %{demandeur}"
         heading: "Edit file no. %{dossier_id} – %{demandeur}"
+      submit:
+        success: "Your changes to the file have been saved and the applicant has been notified."
     dossiers:
       submitted_revision:
         download: "Download the file (PDF)"

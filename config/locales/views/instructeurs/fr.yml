@@ -18,6 +18,8 @@ fr:
       show:
         title: "Modifier · Dossier n° %{dossier_id} – %{demandeur}"
         heading: "Modifier le dossier n° %{dossier_id} – %{demandeur}"
+      submit:
+        success: "Vos modifications sur le dossier ont bien été enregistrées et l’usager a été notifié."
     dossiers:
       submitted_revision:
         download: "Télécharger le dossier (PDF)"
