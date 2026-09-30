@@ -58,9 +58,14 @@ module ProcedureHelper
   def termines_by_week_chart_series(termines_by_week)
     return termines_by_week if termines_by_week.blank?
 
+    first_week_with_decision = termines_by_week.map { |series| series[:data].values.index(&:positive?) }.min
+    # Without markers, a single point draws nothing.
+    weeks_to_skip = [first_week_with_decision, termines_by_week.first[:data].size - 2].min
+
     termines_by_week.map do |series|
       series.merge(
         name: dossier_display_state(series[:name]),
+        data: series[:data].drop(weeks_to_skip).to_h,
         **TERMINE_STATE_CHART_STYLES.fetch(series[:name])
       )
     end

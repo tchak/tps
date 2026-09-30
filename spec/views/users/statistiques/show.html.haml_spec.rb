@@ -34,5 +34,28 @@ describe 'users/statistiques/show', type: :view do
       expect(view.content_for(:charts_js)).to include('"color":"var(--background-flat-error)"')
       expect(view.content_for(:charts_js)).to include('"color":"var(--background-flat-success)","zIndex":2')
     end
+
+    it 'starts the weekly chart at the first week with a decision' do
+      render
+      expect(view.content_for(:charts_js)).to include('"data":[["13 avr.",2],["20 avr.",0]]')
+      expect(view.content_for(:charts_js)).to include('"data":[["13 avr.",0],["20 avr.",1]]')
+    end
+  end
+
+  context 'without any decision in the window' do
+    before { assign(:termines_by_week, []) }
+
+    it 'still renders the page' do
+      expect(subject).to have_text("Répartition par semaine")
+    end
+  end
+
+  context 'when the only decision is in the current week' do
+    before { assign(:termines_by_week, [{ name: 'accepte', data: { '06 avr.' => 0, '13 avr.' => 0, '20 avr.' => 1 } }]) }
+
+    it 'keeps the week before, a line needing two points' do
+      render
+      expect(view.content_for(:charts_js)).to include('"data":[["13 avr.",0],["20 avr.",1]]')
+    end
   end
 end
