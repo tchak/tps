@@ -86,6 +86,7 @@
         <div class="fr-mt-4w">
           <div class="chart">
             <%= line_chart @termines_by_week,
+              discrete: true,
               library: Chartkick.options[:default_library_config],
               colors: ["var(--background-flat-success)", "var(--background-flat-error)", "#FAD859"],
               ytitle: t('.dossiers_count') %>
