@@ -2,6 +2,7 @@
   // Keep the semantic <dl>, but render it as a bulleted list:
   // a bullet on each key (<dt>) and no indentation on the value (<dd>).
   padding-inline-start: 1.5em;
+  margin: var(--text-spacing);
 
   dt {
     display: list-item;
