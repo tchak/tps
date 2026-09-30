@@ -135,8 +135,25 @@ describe 'Inviting an expert:', js: true do
       expect(page).to have_text('1 avis donné')
     end
 
-    # scenario 'I can invite other experts' do
-    # end
+    context 'when experts list is restricted by admin' do
+      let(:allowed_expert) { create(:expert) }
+
+      before do
+        procedure.update!(experts_require_administrateur_invitation: true)
+        create(:experts_procedure, expert: allowed_expert, procedure:)
+      end
+
+      scenario 'I can invite an allowed expert by typing their email' do
+        login_as expert.user, scope: :user
+        visit avis_new_expert_avis_path(procedure, avis)
+
+        fill_in 'Emails', with: "#{allowed_expert.email},unknown@example.fr,"
+        click_on "Envoyer la demande d’avis"
+
+        expect(page).to have_content("unknown@example.fr : Cet expert n’est pas autorisé sur cette démarche")
+        expect(page).to have_content("Une demande d’avis a été envoyée à #{allowed_expert.email}")
+      end
+    end
 
     context 'with dossiers having attached files', js: true do
       let(:path) { 'spec/fixtures/files/piece_justificative_0.pdf' }

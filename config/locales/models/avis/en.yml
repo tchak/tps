@@ -34,6 +34,7 @@ en:
       avis_emails: Email addresses of the experts you wish to request advice from
       avis_emails_hint: "You can enter the addresses individually, or copy and paste a list of addresses separated by semicolons into the field below (example: address1@mail.com; address2@mail.com; address3@mail.com)."
       avis_emails_list_admin_hint: "Choose the experts you wish to request advice from from the list predefined by the process administrators."
+      avis_emails_expert_list_admin_hint: "Enter the email address of an expert allowed by the procedure administrators."
       question_answer:
         true: 'yes'
         false: 'no'
