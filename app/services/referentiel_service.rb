@@ -11,6 +11,7 @@ class ReferentielService
   API_TIMEOUT = 4 # in seconds
   MAX_FILE_SIZE = 1.megabyte
 
+  USAGER_INPUT_TAG = "{query}"
   DOSSIER_NUMBER_TAG = "{dossier_number}"
 
   attr_reader :referentiel, :service
@@ -100,7 +101,7 @@ class ReferentielService
 
   def build_substitutions(query_params, values_source, row_id = nil)
     referentiel.tiptap_mention_ids.each_with_object({}) do |id, hash|
-      value = if id == "{query}"
+      value = if id == USAGER_INPUT_TAG
         query_params.presence&.to_s
       else
         extract_value(values_source, id, row_id)
