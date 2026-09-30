@@ -237,6 +237,37 @@ describe 'Editing a dossier as an instructeur:', js: true do
     end
   end
 
+  context 'when the procedure is sva and a correction is pending' do
+    let!(:procedure) do
+      create(:procedure, :published, :sva,
+        instructeurs: [instructeur],
+        instructeurs_can_edit_dossiers: true,
+        public_type_de_champs: [{ type: 'text', libelle: 'Texte', stable_id: 99 }])
+    end
+    let!(:dossier) { create(:dossier, :en_construction, :with_populated_champs, procedure: procedure) }
+    let!(:correction) { create(:dossier_correction, dossier:) }
+
+    before { login_as(instructeur.user, scope: :user) }
+
+    scenario 'the instructeur can save the changes and the correction stays pending' do
+      visit instructeur_dossier_path(procedure, dossier, statut: 'a-suivre')
+      click_on 'Modifier le dossier'
+
+      fill_in 'Texte', with: 'Valeur corrigée par l’instructeur'
+      blur
+      wait_until { buffered_value(dossier, 99) == 'Valeur corrigée par l’instructeur' }
+
+      click_on 'Enregistrer les modifications'
+      expect(page).to have_selector('#dossier-submit-dialog[open]', visible: :all)
+
+      click_on 'Confirmer les modifications et notifier lʼusager'
+
+      expect(page).to have_current_path(instructeur_dossier_path(procedure, dossier, statut: 'a-suivre'))
+      expect(main_value(dossier, 99)).to eq('Valeur corrigée par l’instructeur')
+      expect(correction.reload).to be_pending
+    end
+  end
+
   context 'when the instructeur is also the owner of the dossier' do
     let!(:dossier) { create(:dossier, :en_construction, :with_populated_champs, procedure: procedure, user: instructeur.user) }
 

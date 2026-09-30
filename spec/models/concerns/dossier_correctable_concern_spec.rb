@@ -165,6 +165,30 @@ describe DossierCorrectableConcern do
     end
   end
 
+  describe "#validate_pending_correction" do
+    before_all { seed "cases/sva" }
+
+    let(:dossier) { create(:dossier, :en_construction, procedure: procedures.sva) }
+
+    before { create(:dossier_correction, dossier:) }
+
+    it "requires the usager to confirm the corrections" do
+      dossier.champs_public_valid?
+
+      expect(dossier.errors).to be_of_kind(:pending_correction, :blank)
+    end
+
+    context "when an instructeur edits the dossier" do
+      before { dossier.with_instructeur_buffer_stream }
+
+      it "does not require the confirmation" do
+        dossier.champs_public_valid?
+
+        expect(dossier.errors).not_to include(:pending_correction)
+      end
+    end
+  end
+
   describe "#resolve_pending_correction!" do
     let(:dossier) { dossiers.en_construction }
 
