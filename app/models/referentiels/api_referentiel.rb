@@ -88,7 +88,7 @@ class Referentiels::APIReferentiel < Referentiel
   end
 
   def url_has_query_tag?
-    tiptap_paragraph_nodes.any? { _1["type"] == "mention" && _1.dig("attrs", "id") == "{query}" }
+    tiptap_paragraph_nodes.any? { _1["type"] == "mention" && _1.dig("attrs", "id") == ReferentielService::USAGER_INPUT_TAG }
   end
 
   def test_data_tags
@@ -98,7 +98,7 @@ class Referentiels::APIReferentiel < Referentiel
   end
 
   def effective_test_data
-    test_data_tiptap&.dig("{query}")
+    test_data_tiptap&.dig(ReferentielService::USAGER_INPUT_TAG)
   end
 
   def last_response_body

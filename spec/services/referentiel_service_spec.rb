@@ -328,4 +328,31 @@ RSpec.describe ReferentielService, type: :service do
       end
     end
   end
+
+  describe '#url with the {dossier_number} tag' do
+    let(:url_tiptap) { url_tiptap_for(described_class::DOSSIER_NUMBER_TAG, "/dossier/") }
+    let(:test_data_tiptap) { { "{query}" => "search", described_class::DOSSIER_NUMBER_TAG => "1234" } }
+    let(:api_referentiel) { build(:api_referentiel, :exact_match, url_tiptap:, test_data_tiptap:) }
+    let(:service) { described_class.new(referentiel: api_referentiel) }
+
+    context 'with a dossier' do
+      let(:dossier) { dossiers.en_construction }
+
+      it 'resolves the tag to the dossier id' do
+        expect(service.url("search", dossier:)).to eq("https://api.gouv.fr/search/dossier/#{dossier.id}")
+      end
+    end
+
+    context 'without a dossier, from the admin test screen' do
+      it 'falls back on the admin test data' do
+        expect(service.test_url).to eq("https://api.gouv.fr/search/dossier/1234")
+      end
+    end
+
+    context 'without a dossier and without test data for the tag' do
+      let(:test_data_tiptap) { { "{query}" => "search" } }
+
+      it { expect(service.test_url).to be_nil }
+    end
+  end
 end

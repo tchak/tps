@@ -62,6 +62,11 @@ RSpec.describe Referentiels::NewFormComponent, type: :component do
           expect(page).to have_button('Adresse')
           expect(page).to have_button('Checkbox')
         end
+
+        it 'offers the query and dossier number tags' do
+          expect(page).to have_button('Valeur saisie par l’usager')
+          expect(page).to have_button('Numéro du dossier')
+        end
       end
 
       context 'with csv was selected' do
