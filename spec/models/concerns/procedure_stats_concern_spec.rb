@@ -106,6 +106,43 @@ describe ProcedureStatsConcern do
     end
   end
 
+  describe '#stats_termines_by_week' do
+    let(:procedure) { create(:procedure) }
+
+    subject(:stats_termines_by_week) { procedure.stats_termines_by_week }
+
+    before { travel_to(Time.zone.local(2026, 9, 30, 12)) }
+
+    context 'when a dossier was instructed long before its decision' do
+      before do
+        dossier = create(:dossier, :en_instruction, procedure:, en_instruction_at: Time.zone.local(2026, 7, 1, 10))
+        processed_at = Time.zone.local(2026, 9, 22, 10)
+        dossier.traitements.accepter(processed_at:)
+        dossier.update!(state: :accepte, processed_at:)
+      end
+
+      it 'counts it in the week of its decision' do
+        expect(stats_termines_by_week.sole[:data].reject { |_, count| count.zero? }).to eq('21 sept.' => 1)
+      end
+    end
+
+    context 'when each state has decisions in different weeks' do
+      before do
+        create(:dossier, :accepte, procedure:, processed_at: Time.zone.local(2026, 9, 22, 10))
+        create(:dossier, :refuse, procedure:, processed_at: Time.zone.local(2026, 9, 8, 10))
+      end
+
+      it 'lists every week of the window in chronological order in each series' do
+        accepte, refuse = stats_termines_by_week
+
+        expect(accepte[:data].keys).to eq(refuse[:data].keys)
+        expect(accepte[:data].keys.size).to eq(26)
+        expect(accepte[:data].keys.values_at(0, 1, -1)).to eq(['06 avr.', '13 avr.', '28 sept.'])
+        expect(accepte[:data].slice('07 sept.', '21 sept.')).to eq('07 sept.' => 0, '21 sept.' => 1)
+      end
+    end
+  end
+
   describe '#usual_traitement_time_for_recent_dossiers' do
     let(:procedure) { create(:procedure) }
 

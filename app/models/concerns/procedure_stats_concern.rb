@@ -55,23 +55,12 @@ module ProcedureStatsConcern
 
   def stats_termines_by_week
     stats_cache_fetch("#{cache_key_with_version}/stats_termines_by_week") do
-      now = Time.zone.now
-      chart_data = dossiers.includes(:traitements)
-        .visible_by_administration
-        .state_termine
-        .where(traitements: { processed_at: (now.beginning_of_week - 6.months)..now.end_of_week })
-
-      dossier_state_values = chart_data.pluck(:state).sort.uniq
-
-      dossier_state_values
-        .map do |state|
-              {
-                name: state,
-                data: chart_data .where(state: state) .group_by_week do |dossier|
-                  dossier.traitements.first.processed_at
-                end.map { |k, v| [k, v.count] }.to_h.transform_keys { |week| pretty_week(week) },
-              }
-            end
+      dossiers.visible_by_administration.state_termine
+        .group(:state).order(:state)
+        .group_by_week(:processed_at, last: 26, format: -> { pretty_week(it) })
+        .count
+        .group_by { |(state, _), _| state }
+        .map { |state, counts| { name: state, data: counts.to_h { |(_, week), count| [week, count] } } }
     end
   end
 
