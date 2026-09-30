@@ -49,6 +49,23 @@ module ProcedureHelper
     [1, minutes].max
   end
 
+  TERMINE_STATE_CHART_STYLES = {
+    'accepte' => { color: 'var(--background-flat-success)', zIndex: 2 },
+    'refuse' => { color: 'var(--background-flat-error)', zIndex: 1 },
+    'sans_suite' => { color: '#FAD859', zIndex: 0 },
+  }.freeze
+
+  def termines_by_week_chart_series(termines_by_week)
+    return termines_by_week if termines_by_week.blank?
+
+    termines_by_week.map do |series|
+      series.merge(
+        name: dossier_display_state(series[:name]),
+        **TERMINE_STATE_CHART_STYLES.fetch(series[:name])
+      )
+    end
+  end
+
   def admin_procedures_back_path(procedure)
     statut = if procedure.discarded?
       'supprimees'
