@@ -34,6 +34,7 @@ fr:
       avis_emails: Adresses électroniques des experts à qui vous souhaitez demander un avis
       avis_emails_hint: "Vous pouvez saisir les adresses individuellement, ou bien copier-coller dans le champ ci-dessous une liste d’adresses séparées par des points virgules (exemple : adresse1@mail.com; adresse2@mail.com; adresse3@mail.com)."
       avis_emails_list_admin_hint: "Choisissez des experts à qui vous souhaitez demander un avis parmi la liste prédéfinie par les administrateurs de la démarche"
+      avis_emails_expert_list_admin_hint: "Saisissez l’adresse électronique d’un expert autorisé par les administrateurs de la démarche."
       question_answer:
         true: oui
         false: non
