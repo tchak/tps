@@ -141,6 +141,35 @@ describe ProcedureStatsConcern do
         expect(accepte[:data].slice('07 sept.', '21 sept.')).to eq('07 sept.' => 0, '21 sept.' => 1)
       end
     end
+
+    context 'when the stats were first computed in another locale' do
+      before do
+        allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+        create(:dossier, :accepte, procedure:, processed_at: Time.zone.local(2026, 9, 22, 10))
+        I18n.with_locale(:en) { procedure.stats_termines_by_week }
+      end
+
+      it 'labels the weeks in the current locale' do
+        expect(stats_termines_by_week.sole[:data].keys.last).to eq('28 sept.')
+      end
+    end
+  end
+
+  describe '#stats_usual_traitement_time_by_month_in_days' do
+    let(:procedure) { create(:procedure) }
+
+    context 'when the stats were first computed in another locale' do
+      before do
+        allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+        travel_to(Time.zone.local(2026, 9, 30, 12))
+        create_dossier(depose_at: 2.months.ago - 3.days, en_instruction_at: 2.months.ago - 2.days, processed_at: 2.months.ago)
+        I18n.with_locale(:en) { procedure.stats_usual_traitement_time_by_month_in_days }
+      end
+
+      it 'labels the months in the current locale' do
+        expect(procedure.stats_usual_traitement_time_by_month_in_days.keys).to eq(['juillet 2026'])
+      end
+    end
   end
 
   describe '#usual_traitement_time_for_recent_dossiers' do

@@ -16,7 +16,7 @@ module ProcedureStatsConcern
   end
 
   def stats_usual_traitement_time_by_month_in_days
-    stats_cache_fetch("#{cache_key_with_version}/stats_usual_traitement_time_by_month_in_days") do
+    stats_cache_fetch("#{cache_key_with_version}/stats_usual_traitement_time_by_month_in_days/#{I18n.locale}") do
       usual_traitement_time_by_month_in_days
     end
   end
@@ -54,7 +54,7 @@ module ProcedureStatsConcern
   end
 
   def stats_termines_by_week
-    stats_cache_fetch("#{cache_key_with_version}/stats_termines_by_week") do
+    stats_cache_fetch("#{cache_key_with_version}/stats_termines_by_week/#{I18n.locale}") do
       dossiers.visible_by_administration.state_termine
         .group(:state).order(:state)
         .group_by_week(:processed_at, last: 26, format: -> { pretty_week(it) })
