@@ -32,7 +32,7 @@ class ApplicationController < ActionController::Base
   rescue_from DossierChampsConcern::ChampNotInRevisionError, with: :champ_not_in_revision
 
   helper_method :multiple_devise_profile_connect?, :instructeur_signed_in?, :current_instructeur, :current_expert, :expert_signed_in?,
-    :administrateur_signed_in?, :current_administrateur, :current_account, :set_locale, :current_expert_not_instructeur?,
+    :administrateur_signed_in?, :current_administrateur, :current_account, :set_locale,
     :gestionnaire_signed_in?, :current_gestionnaire, :extra_query_params, :chatbot_disabled_page?
 
   before_action do
@@ -93,10 +93,6 @@ class ApplicationController < ActionController::Base
 
   def current_expert
     current_user&.expert
-  end
-
-  def current_expert_not_instructeur?
-    current_user&.expert? && !current_user&.instructeur?
   end
 
   def expert_signed_in?
