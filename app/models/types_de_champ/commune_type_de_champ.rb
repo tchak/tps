@@ -42,6 +42,7 @@ class TypesDeChamp::CommuneTypeDeChamp < TypeDeChamp
   def columns(procedure_id:, displayable: true, prefix: nil)
     addressable_columns(procedure_id:, displayable:, prefix:)
       .concat(legacy_columns(procedure_id:, prefix:))
+      .concat(addressable_columns(procedure_id:, displayable:, prefix:, only: [:city_code]))
   end
 
   def customization_column(procedure_id:)

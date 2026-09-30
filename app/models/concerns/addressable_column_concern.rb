@@ -3,15 +3,18 @@
 module AddressableColumnConcern
   extend ActiveSupport::Concern
 
-  def addressable_columns(procedure_id:, displayable: true, prefix: nil, deprecated_columns: false, only: nil)
+  DEFAULT_ADDRESSABLE_COLUMNS = [:postal_code, :city_name, :department_code, :region_code].freeze
+
+  def addressable_columns(procedure_id:, displayable: true, prefix: nil, deprecated_columns: false, only: DEFAULT_ADDRESSABLE_COLUMNS)
     column_specs = [
       [:postal_code, "Code postal (5 chiffres)", '$.postal_code', :text, [], displayable, true],
       [:city_name, "Commune", '$.city_name', :text, [], displayable, true],
       [:department_code, "Département", '$.department_code', :enum, APIGeoService.departement_options, displayable, true],
       [:region_code, "Région", '$.region_code', :enum, APIGeoService.region_options, displayable, true],
+      [:city_code, "Code INSEE", '$.city_code', :text, [], displayable, true],
     ]
 
-    column_specs = column_specs.filter { only.include?(_1.first) } if only
+    column_specs = column_specs.filter { only.include?(_1.first) }
 
     # legacy: kept resolvable for procedure_presentations / export_templates saved before the jsonpath fix
     if deprecated_columns
