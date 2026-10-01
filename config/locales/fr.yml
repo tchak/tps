@@ -628,7 +628,6 @@ fr:
             title_closing_details: Plus d’informations sur la clôture de la démarche
             more_details: Plus d’informations
             procedure: démarche
-            this_procedure: cette démarche
           new_message:
             title: "Nouveau message de l’administration"
             body_html: 'Consultez la <a href="%{link}" class="fr-notice__link">messagerie</a>.'

@@ -635,7 +635,6 @@ en:
             title_closing_details: More information on the closing procedure
             more_details: More information
             procedure: procedure
-            this_procedure: this procedure
         trash:
           title: "Trash"
           back_to_list: "My files"
