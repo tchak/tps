@@ -715,6 +715,7 @@ describe Administrateurs::GroupeInstructeursController, type: :controller do
         it 'verifies the file size limitation' do
           expect(flash.alert).to be_present
           expect(flash.alert).to eq("Importation impossible : le poids du fichier est supérieur à 1 Mo")
+          expect(response).to redirect_to(admin_procedure_groupe_instructeurs_path(procedure))
         end
       end
 
@@ -726,6 +727,7 @@ describe Administrateurs::GroupeInstructeursController, type: :controller do
         it 'checks file format acceptance' do
           expect(flash.alert).to be_present
           expect(flash.alert).to eq("Importation impossible : veuillez importer un fichier CSV")
+          expect(response).to redirect_to(admin_procedure_groupe_instructeurs_path(procedure))
         end
       end
 
@@ -736,6 +738,7 @@ describe Administrateurs::GroupeInstructeursController, type: :controller do
 
         it 'rejects the file based on sniffed content type, not declared content type' do
           expect(flash.alert).to eq("Importation impossible : veuillez importer un fichier CSV")
+          expect(response).to redirect_to(admin_procedure_groupe_instructeurs_path(procedure))
         end
       end
 
@@ -860,6 +863,7 @@ describe Administrateurs::GroupeInstructeursController, type: :controller do
         it 'checks for file size limit and displays appropriate flash alert' do
           expect(flash.alert).to be_present
           expect(flash.alert).to eq("Importation impossible : le poids du fichier est supérieur à 1 Mo")
+          expect(response).to redirect_to(admin_procedure_groupe_instructeurs_path(procedure_non_routee))
         end
       end
 
@@ -871,6 +875,7 @@ describe Administrateurs::GroupeInstructeursController, type: :controller do
         it 'validates file format and displays a flash alert' do
           expect(flash.alert).to be_present
           expect(flash.alert).to eq("Importation impossible : veuillez importer un fichier CSV")
+          expect(response).to redirect_to(admin_procedure_groupe_instructeurs_path(procedure_non_routee))
         end
       end
 
@@ -881,6 +886,7 @@ describe Administrateurs::GroupeInstructeursController, type: :controller do
 
         it 'rejects the file based on sniffed content type, not declared content type' do
           expect(flash.alert).to eq("Importation impossible : veuillez importer un fichier CSV")
+          expect(response).to redirect_to(admin_procedure_groupe_instructeurs_path(procedure_non_routee))
         end
       end
 
