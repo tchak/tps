@@ -68,7 +68,7 @@ RSpec.describe Instructeurs::InstructionButtonComponent, type: :component do
     it 'renders the batch instruction button' do
       expect(rendered).to have_button('Rendre une décision', disabled: true)
       expect(rendered).to have_selector('button[data-operation="instruction"]')
-      expect(rendered).to have_selector('button[data-action="batch-operation#openInstructionModal"]')
+      expect(rendered).to have_selector('button[data-action="batch-operation#dispatchSelectedIds"]')
     end
 
     it 'leaves the modal to the batch operation component, outside its form' do

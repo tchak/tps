@@ -191,9 +191,9 @@ export class BatchOperationController extends ApplicationController {
     }
   }
 
-  openInstructionModal(event: Event) {
+  dispatchSelectedIds(event: Event) {
     event.preventDefault();
-    this.dispatch('open', {
+    this.dispatch('selection', {
       detail: { ids: this.getSelectedIds() },
       target: window
     });
