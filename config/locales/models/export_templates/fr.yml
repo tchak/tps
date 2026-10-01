@@ -33,3 +33,8 @@ fr:
           Essayez-le et donnez-nous votre avis
           en nous envoyant un email à %{mailto}.
         warning: Si vous modifiez ce modèle, il sera également modifié pour tous les instructeurs qui ont accès à ce modèle.
+        cancel: Annuler
+        submit: Enregistrer
+      form_zip:
+        cancel: Annuler
+        submit: Enregistrer

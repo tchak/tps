@@ -39,7 +39,6 @@ fr:
       hint: libre à vous de créer et de configurer les groupes en utilisant les champs « routables » du formulaire usager
   cancel: Annuler
   continue: Continuer
-  back_to_management: Revenir à l’écran de gestion
   routage_doc:
     title: "Documentation sur le routage"
     learn_more: "En savoir plus sur la"

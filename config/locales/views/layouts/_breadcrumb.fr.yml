@@ -12,7 +12,6 @@ fr:
       show: 'Voir le fil d’Ariane'
       preview: 'Prévisualiser le formulaire'
       preview_annotations: 'Prévisualiser les annotations'
-      continue_annotations: 'Valider les annotations'
       since: 'depuis le %{date}'
       closed: 'Close'
       published: 'Publiée'
