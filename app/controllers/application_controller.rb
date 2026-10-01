@@ -112,10 +112,10 @@ class ApplicationController < ActionController::Base
   alias_method :pundit_user, :current_user
 
   def set_locale(locale)
-    return if !locale.respond_to?(:to_sym)
+    locale = available_locale(locale)
 
-    if locale.to_sym.in?(I18n.available_locales)
-      cookies[:locale] = { value: locale, secure: Rails.env.production?, httponly: true }
+    if locale.present?
+      cookies[:locale] = { value: locale.to_s, secure: Rails.env.production?, httponly: true }
       if user_signed_in?
         current_user.update(locale: locale)
       end
@@ -427,13 +427,11 @@ class ApplicationController < ActionController::Base
   end
 
   def switch_locale(&action)
-    unchecked_locale = extract_locale_from_query_params ||
+    locale = extract_locale_from_query_params ||
       extract_locale_from_cookie ||
       extract_locale_from_user ||
       locale_from_accept_language ||
       I18n.default_locale
-
-    locale = unchecked_locale.to_sym.in?(I18n.available_locales) ? unchecked_locale : I18n.default_locale
 
     gon.locale = locale
 
@@ -445,19 +443,26 @@ class ApplicationController < ActionController::Base
   end
 
   def extract_locale_from_user
-    current_user&.locale
+    available_locale(current_user&.locale)
   end
 
   def extract_locale_from_cookie
-    cookies[:locale]
+    available_locale(cookies[:locale])
   end
 
   # "en-US,fr;q=0.8" => :en
   def locale_from_accept_language
-    Rack::Utils.q_values(request.accept_language)
+    Rack::Utils.q_values(request.accept_language.to_s.scrub)
       .sort_by.with_index { |(_, quality), index| [-quality, index] }
-      .map { |language, _| language.split('-').first.to_s.downcase.to_sym }
-      .find { it.in?(I18n.available_locales) }
+      .filter_map { |language, _| available_locale(language.split('-').first.to_s.downcase) }
+      .first
+  end
+
+  # The value comes from the request (query string, cookie, header) and may
+  # hold bytes that are not valid UTF-8: comparing strings never raises,
+  # unlike to_sym.
+  def available_locale(value)
+    I18n.available_locales.find { it.to_s == value.to_s }
   end
 
   def set_customizable_view_path
