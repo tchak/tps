@@ -7,7 +7,12 @@ class Champs::DossierLinkChamp < ChampData
     def expired? = expired_on.present?
   end
 
-  validates_with DossierLinkValidator, if: -> { should_validate_in_current_context? && value.present? }
+  DOSSIER_NUMBER_REGEXP = /\A\d+\z/
+
+  # Checked before the lookups: they cast the value to an integer, so "12345 abc"
+  # would match dossier 12345 while the whole string got stored.
+  validates :value, format: { with: DOSSIER_NUMBER_REGEXP }, allow_blank: true, if: :should_validate_in_current_context?
+  validates_with DossierLinkValidator, if: -> { should_validate_in_current_context? && value&.match?(DOSSIER_NUMBER_REGEXP) }
 
   # The (still existing) procedures the field is restricted to, in the admin-configured order.
   def linkable_procedures
