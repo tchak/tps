@@ -11,6 +11,7 @@ en:
         champs/dossier_link_champ:
           attributes:
             value:
+              invalid: "The file number must contain only digits"
               not_found: "File not found"
               brouillon_not_allowed: "This file has not been submitted yet"
               not_in_allowed_procedures: "This file is not in an allowed procedure"

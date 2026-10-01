@@ -11,6 +11,7 @@ fr:
         champs/dossier_link_champ:
           attributes:
             value:
+              invalid: "Le numéro de dossier ne doit contenir que des chiffres"
               not_found: "Le dossier n’existe pas"
               brouillon_not_allowed: "Le dossier n’a pas encore été déposé"
               not_in_allowed_procedures: "Ce dossier n’est pas dans une démarche autorisée"

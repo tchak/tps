@@ -26,7 +26,21 @@ describe Champs::DossierLinkChamp, type: :model do
 
       context 'when invalid id' do
         let(:value) { 'kthxbye' }
-        it { is_expected.to be_falsey }
+
+        it 'is invalid with only the format error' do
+          is_expected.to be_falsey
+          expect(champ.errors).to be_of_kind(:value, :invalid)
+          expect(champ.errors).not_to be_of_kind(:value, :not_found)
+        end
+      end
+
+      context 'when a valid id is followed by other characters' do
+        let(:value) { "#{create(:dossier, :en_construction).id} abc" }
+
+        it 'is invalid with a format error' do
+          is_expected.to be_falsey
+          expect(champ.errors).to be_of_kind(:value, :invalid)
+        end
       end
 
       context 'when id of a deleted dossier' do
