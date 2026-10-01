@@ -72,6 +72,12 @@ describe ApplicationController, type: :controller do
 
       it { is_expected.to eq(:en) }
     end
+
+    context 'with bytes that are not valid UTF-8' do
+      let(:accept_language) { "en\xC0\xA7,fr".dup.force_encoding(Encoding::UTF_8) }
+
+      it { is_expected.to eq(:fr) }
+    end
   end
 
   describe 'set_sentry_user and append_info_to_payload' do
